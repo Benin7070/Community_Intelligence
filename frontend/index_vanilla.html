@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Community Intelligence Platform | Multi-Layer Evidence Synthesis</title>
+    <meta name="description" content="Community Intelligence Platform implementing multi-signal credibility profiling, semantic consensus clustering, and LLM-grounded synthesis based on IEEE research specifications." />
+    <!-- Modern Typography: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- GSAP 3.12 — motion graphics engine (bang-motion skill) -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/EasePack.min.js"></script>
+  </head>
+  <body>
+    <!-- Unified ChatGPT-Inspired Authentication Flow (No Role Switching) -->
+    <div id="authOverlay" class="auth-overlay active">
+      <div class="chatgpt-auth-container">
+        
+        <!-- Header Brand Icon -->
+        <div class="chatgpt-brand-header">
+          <div class="chatgpt-brand-logo">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="4"></circle>
+              <line x1="12" y1="2" x2="12" y2="6"></line>
+              <line x1="12" y1="18" x2="12" y2="22"></line>
+              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+              <line x1="2" y1="12" x2="6" y2="12"></line>
+              <line x1="18" y1="12" x2="22" y2="12"></line>
+              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+              <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+            </svg>
+          </div>
+          <span class="chatgpt-brand-name">Community Intel</span>
+        </div>
+
+        <div class="chatgpt-auth-card">
+          <!-- Step 1: Email Address -->
+          <div id="loginStep1" class="chatgpt-step-flow">
+            <h1 class="chatgpt-auth-title">Welcome</h1>
+            <p class="chatgpt-auth-subtitle">Enter your email to sign in or get started</p>
+
+            <form id="authEmailForm" class="chatgpt-form" autocomplete="on">
+              <div class="chatgpt-input-group">
+                <label for="authEmail" class="chatgpt-label">Email address</label>
+                <div class="input-focus-container">
+                  <input 
+                    type="email" 
+                    id="authEmail" 
+                    name="email"
+                    class="chatgpt-input" 
+                    placeholder="name@example.com" 
+                    autocomplete="username" 
+                    required 
+                    enterkeyhint="next"
+                  />
+                </div>
+              </div>
+
+              <button type="submit" id="authRequestBtn" class="chatgpt-submit-btn">
+                <span>Continue</span>
+                <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </form>
+
+            <div class="chatgpt-hint-box">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Instant role detection. Sign in with password or 6-digit email OTP.</span>
+            </div>
+          </div>
+
+          <!-- Step 2A: Registered User - Choose Password OR OTP -->
+          <div id="loginStepPassword" class="chatgpt-step-flow" style="display: none;">
+            <h1 class="chatgpt-auth-title">Welcome back</h1>
+            <div class="chatgpt-email-indicator">
+              <span>Signing in as <strong id="loginTargetEmailDisplay">user@example.com</strong></span>
+              <button type="button" class="chatgpt-link-action auth-edit-email-btn" title="Change email">Edit</button>
+            </div>
+
+            <form id="authPasswordForm" class="chatgpt-form" autocomplete="on">
+              <div class="chatgpt-input-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <label for="authLoginPassword" class="chatgpt-label" style="margin-bottom: 0;">Password</label>
+                </div>
+                <div class="input-focus-container">
+                  <input 
+                    type="password" 
+                    id="authLoginPassword" 
+                    name="password"
+                    class="chatgpt-input" 
+                    placeholder="Enter your account password" 
+                    autocomplete="current-password" 
+                    enterkeyhint="done"
+                  />
+                  <button type="button" class="password-toggle-btn" id="toggleLoginPasswordBtn" title="Toggle password visibility">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" id="authPasswordLoginBtn" class="chatgpt-submit-btn">
+                <span>Sign in with password</span>
+              </button>
+            </form>
+
+            <div class="chatgpt-divider"><span>OR</span></div>
+
+            <button type="button" id="authRequestOtpBtn" class="chatgpt-secondary-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>
+              <span>Sign in with email OTP code</span>
+            </button>
+          </div>
+
+          <!-- Step 2B: One-Time Password / Code Verification -->
+          <div id="loginStepOtp" class="chatgpt-step-flow" style="display: none;">
+            <h1 class="chatgpt-auth-title">Enter your code</h1>
+            <div class="chatgpt-email-indicator">
+              <span>Code sent to <strong id="otpTargetEmailDisplay">user@example.com</strong></span>
+              <button type="button" class="chatgpt-link-action auth-edit-email-btn" title="Change email">Edit</button>
+            </div>
+
+            <form id="authOtpForm" class="chatgpt-form" autocomplete="off">
+              <div class="chatgpt-input-group">
+                <label for="authOtp" class="chatgpt-label">6-digit verification code</label>
+                <div class="input-focus-container">
+                  <input 
+                    type="text" 
+                    id="authOtp" 
+                    name="one-time-code"
+                    class="chatgpt-input chatgpt-otp-field" 
+                    placeholder="000000" 
+                    maxlength="6" 
+                    inputmode="numeric" 
+                    autocomplete="one-time-code" 
+                    required 
+                    enterkeyhint="done"
+                  />
+                </div>
+              </div>
+
+              <button type="submit" id="authVerifyBtn" class="chatgpt-submit-btn">
+                <span>Verify and continue</span>
+              </button>
+
+              <div class="chatgpt-resend-row">
+                <span id="resendCountdownText">Didn't receive code?</span>
+                <button type="button" id="authResendBtn" class="chatgpt-link-action">Resend code</button>
+              </div>
+
+              <button type="button" id="authBackToPasswordBtn" class="chatgpt-link-action" style="margin-top: 14px; text-align: center; width: 100%;">
+                ← Back to password sign-in
+              </button>
+            </form>
+          </div>
+
+          <!-- Step 3: Unregistered User - Sign Up & Setup Password + OTP -->
+          <div id="loginStepSignup" class="chatgpt-step-flow" style="display: none;">
+            <div class="chatgpt-unregistered-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>No account found with this email</span>
+            </div>
+
+            <h1 class="chatgpt-auth-title" style="margin-top: 6px;">Create account</h1>
+            <div class="chatgpt-email-indicator">
+              <span>Registering <strong id="signupTargetEmailDisplay">user@example.com</strong></span>
+              <button type="button" class="chatgpt-link-action auth-edit-email-btn" title="Change email">Edit</button>
+            </div>
+
+            <form id="authSignupForm" class="chatgpt-form" autocomplete="off">
+              <div class="chatgpt-input-group">
+                <label for="authSignupPassword" class="chatgpt-label">Choose password (min 6 chars)</label>
+                <div class="input-focus-container">
+                  <input 
+                    type="password" 
+                    id="authSignupPassword" 
+                    class="chatgpt-input" 
+                    placeholder="Create a password" 
+                    required 
+                    minlength="6"
+                  />
+                </div>
+              </div>
+
+              <div class="chatgpt-input-group">
+                <label for="authSignupPasswordConfirm" class="chatgpt-label">Confirm password</label>
+                <div class="input-focus-container">
+                  <input 
+                    type="password" 
+                    id="authSignupPasswordConfirm" 
+                    class="chatgpt-input" 
+                    placeholder="Repeat password" 
+                    required 
+                    minlength="6"
+                  />
+                </div>
+              </div>
+
+              <!-- OTP Verification for Signup -->
+              <div id="signupOtpSection" style="display: none; margin-top: 8px;">
+                <div class="chatgpt-input-group">
+                  <label for="authSignupOtp" class="chatgpt-label">Enter 6-digit email code</label>
+                  <div class="input-focus-container">
+                    <input 
+                      type="text" 
+                      id="authSignupOtp" 
+                      class="chatgpt-input chatgpt-otp-field" 
+                      placeholder="000000" 
+                      maxlength="6" 
+                      inputmode="numeric"
+                    />
+                  </div>
+                </div>
+
+                <div class="chatgpt-resend-row">
+                  <span id="signupResendCountdownText">Didn't receive code?</span>
+                  <button type="button" id="authSignupResendBtn" class="chatgpt-link-action">Resend code</button>
+                </div>
+              </div>
+
+              <button type="button" id="authSignupSendOtpBtn" class="chatgpt-submit-btn" style="margin-top: 14px;">
+                <span>Send verification code</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+
+              <button type="submit" id="authSignupSubmitBtn" class="chatgpt-submit-btn" style="display: none; margin-top: 14px;">
+                <span>Complete Sign Up</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Subtle Alert Box for Errors -->
+          <div id="authError" class="chatgpt-alert-box" style="display: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="authErrorMsg">An error occurred</span>
+          </div>
+
+          <!-- Footer Trust Markers -->
+          <div class="chatgpt-auth-card-footer">
+            
+            <div class="chatgpt-legal-links">
+              <a href="#terms" onclick="return false;">Terms of use</a>
+              <span class="dot-divider">•</span>
+              <a href="#privacy" onclick="return false;">Privacy policy</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Main App Content (Hidden until authenticated) -->
+    <div id="app" class="app-container" style="display: none;">
+      <!-- Left Sidebar Navigation -->
+      <aside class="app-sidebar" aria-label="Main Navigation">
+        <div class="sidebar-brand">
+          <div class="brand-glyph">
+            <span class="glyph-core">CI</span>
+            <div class="glyph-glow"></div>
+          </div>
+          <div class="brand-text">
+            <h2>Community Intel</h2>
+            <span class="brand-badge">IEEE Conf. Arch</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- Main App Navigation Group -->
+          <div id="mainNavGroup">
+            <button class="nav-btn active" data-view="dashboard" id="navDashboard">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+              </svg>
+              <div class="nav-label">
+                <span>Live Console</span>
+                <small>Query & Pipeline</small>
+              </div>
+            </button>
+
+            <button class="nav-btn" data-view="provenance" id="navProvenance">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="6" cy="6" r="3"></circle>
+                <circle cx="18" cy="6" r="3"></circle>
+                <circle cx="12" cy="18" r="3"></circle>
+                <line x1="8.5" y1="7.5" x2="15.5" y2="7.5"></line>
+                <line x1="7.5" y1="8.5" x2="10.5" y2="15.5"></line>
+                <line x1="16.5" y1="8.5" x2="13.5" y2="15.5"></line>
+              </svg>
+              <div class="nav-label">
+                <span>Provenance Graph</span>
+                <small>Layer 4 Knowledge</small>
+              </div>
+            </button>
+
+            <button class="nav-btn" data-view="architecture" id="navArchitecture">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+              <div class="nav-label">
+                <span>System Blueprint</span>
+                <small>6-Layer Architecture</small>
+              </div>
+            </button>
+
+            <button class="nav-btn" data-view="conflicts" id="navConflicts">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+              <div class="nav-label">
+                <span>Conflict & Uncertainty</span>
+                <small>Bayesian Calibration</small>
+              </div>
+            </button>
+
+            <button class="nav-btn" data-view="sources" id="navSources">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+              </svg>
+              <div class="nav-label">
+                <span>Data Sources</span>
+                <small>SO • GitHub • Reddit</small>
+              </div>
+            </button>
+
+            <!-- Admin Only Nav Item -->
+            <button class="nav-btn admin-only" data-navgroup="admin" id="navAdmin" style="display: none;">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              <div class="nav-label">
+                <span>Admin Dashboard</span>
+                <small>Manage Users & Roles</small>
+              </div>
+            </button>
+          </div>
+
+          <!-- Admin Navigation Group (Contextual Sidebar) -->
+          <div id="adminNavGroup" style="display: none;">
+            <button class="nav-btn nav-back-btn" data-navgroup="main" id="navBackToMain" style="margin-bottom: 12px;">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              <div class="nav-label">
+                <span>Back to Main App</span>
+                <small>Return to live console</small>
+              </div>
+            </button>
+
+            <div class="nav-section-title" style="margin: 16px 12px 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; font-weight: 600;">Admin Console</div>
+
+            <button class="nav-btn active" data-view="admin" id="navAdminOverview">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+              <div class="nav-label">
+                <span>User Management</span>
+                <small>Roles & Access</small>
+              </div>
+            </button>
+            
+            <button class="nav-btn" data-view="admin-audit" id="navAdminAudit">
+              <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              <div class="nav-label">
+                <span>System Audit Logs</span>
+                <small>Activity monitoring</small>
+              </div>
+            </button>
+          </div>
+        </nav>
+
+        <!-- Sidebar Footer Status -->
+        <div class="sidebar-status-box">
+          <div class="status-indicator">
+            <span class="status-dot pulse" id="connectionDot"></span>
+            <span class="status-text" id="connectionText">WebSocket Connected</span>
+          </div>
+          <div class="status-meta">
+            <span>Latency: <strong id="latencyDisplay">18ms</strong></span>
+            <span>API: <strong id="apiStatusDisplay">v1 Online</strong></span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Application Container -->
+      <div class="app-main">
+        
+        <!-- Header Topbar -->
+        <header class="app-header">
+          <div class="header-left">
+            <h1 class="view-title" id="currentViewTitle">Live Intelligence Console</h1>
+            <p class="view-subtitle" id="currentViewSubtitle">Multi-source developer knowledge synthesis with probabilistic consensus modeling</p>
+          </div>
+          <div class="header-right">
+            <!-- Top-Right User Avatar Profile Trigger & Dropdown Menu -->
+            <div class="user-menu-wrapper" id="userMenuWrapper">
+              <button type="button" class="user-avatar-trigger" id="userMenuBtn" aria-expanded="false" title="Account Menu">
+                <div class="user-avatar-circle" id="userAvatarCircle">B</div>
+                <div class="user-avatar-info">
+                  <span class="user-name-display" id="currentUserHandle">User</span>
+                  <span class="badge-tag user-role-pill" id="currentUserRole">ADMIN</span>
+                </div>
+                <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+
+              <!-- Clean User Dropdown Popup -->
+              <div class="user-dropdown-card" id="userDropdownMenu" style="display: none;">
+                <!-- Profile Header -->
+                <div class="dropdown-header">
+                  <div class="dropdown-user-name" id="dropdownUserName">User</div>
+                  <div class="dropdown-user-email" id="currentUserEmail">user@example.com</div>
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <!-- Main Menu Items -->
+                <div class="dropdown-menu-list">
+                  <button type="button" class="dropdown-item" id="openAccountSettingsBtn">
+                    <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Account Settings</span>
+                  </button>
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <!-- Sign Out -->
+                <button type="button" class="dropdown-item signout-btn" id="logoutBtn">
+                  <svg class="dropdown-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  <span>Sign out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dynamic Content Body -->
+        <main class="app-content-body">
+
+          <!-- VIEW 1: DASHBOARD & LIVE CONSOLE -->
+          <section class="view-panel active" id="viewDashboard">
+            <div class="console-grid">
+              
+              <!-- Left Column: Query, Router, and LLM Synthesis -->
+              <div class="console-left-column">
+                
+                <!-- Query Input Card -->
+                <div class="glass-card query-card">
+                  <div class="card-header">
+                    <div class="header-icon-box cyan">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <div>
+                      <h3 class="card-title">Developer Query Input</h3>
+                      <span class="card-subtitle">Layer 1 User Interface</span>
+                    </div>
+                  </div>
+                  <div class="query-form">
+                    <div class="input-wrapper">
+                      <textarea id="queryTextarea" rows="2" placeholder="Ask a complex technical question (e.g. React hook infinite loops, PyTorch CUDA memory, AsyncIO best practices)..."></textarea>
+                    </div>
+                    <div class="query-actions">
+                      <div class="pipeline-indicators">
+                        <span class="badge-tag layer2-tag">Layer 2 Router: Active</span>
+                        <span class="badge-tag layer3-tag">CI Core: 7 Modules</span>
+                      </div>
+                      <button id="submitQueryBtn" class="btn-primary" aria-label="Synthesize Query">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span>Execute Pipeline</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Layer 2: Query Routing Card (Appears dynamically) -->
+                <div class="glass-card router-card" id="routerInspectionCard">
+                  <div class="card-header">
+                    <div class="header-icon-box purple">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    </div>
+                    <div>
+                      <h3 class="card-title">2.0 Query Understanding & Routing</h3>
+                      <span class="card-subtitle">Semantic Intent & Pipeline Classification</span>
+                    </div>
+                    <span class="status-pill status-ready" id="routerStatusPill">Ready</span>
+                  </div>
+                  <div class="router-details-body" id="routerDetailsBody">
+                    <div class="empty-state-text">Submit a query to inspect semantic routing & intent categorization.</div>
+                  </div>
+                </div>
+
+                <!-- Layer 5: Evidence-Grounded Synthesis Result -->
+                <div class="glass-card synthesis-card" id="synthesisCard">
+                  <div class="card-header">
+                    <div class="header-icon-box pink">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    </div>
+                    <div>
+                      <h3 class="card-title">5.0 Evidence-Grounded LLM Synthesis</h3>
+                      <span class="card-subtitle">Formulated from Verified Community Consensus & Independence Profiling</span>
+                    </div>
+                    <div class="synthesis-badge-group">
+                      <span class="confidence-badge" id="confidenceGaugeBadge">Confidence: --</span>
+                    </div>
+                  </div>
+                  
+                  <div class="synthesis-content-box" id="synthesisContent">
+                    <div class="synthesis-placeholder">
+                      <div class="placeholder-icon">
+                        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                      </div>
+                      <p>Run a query above to generate the evidence-grounded synthesis.</p>
+                      <small>The synthesis engine integrates weighted claims from Stack Overflow, GitHub, and Reddit with duplicate elimination.</small>
+                    </div>
+                  </div>
+
+                  <!-- Layer 6: Human Feedback Loop Widget -->
+                  <div class="feedback-strip" id="feedbackStrip">
+                    <div class="feedback-prompt">
+                      <span>Rate Synthesis Accuracy:</span>
+                      <small>Layer 6 Continuous Improvement Loop</small>
+                    </div>
+                    <div class="feedback-actions">
+                      <button class="feedback-btn" data-type="helpful" id="fbHelpful">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                        <span>Helpful</span>
+                      </button>
+                      <button class="feedback-btn" data-type="incorrect" id="fbIncorrect">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"></path></svg>
+                        <span>Contradiction</span>
+                      </button>
+                      <button class="feedback-btn" data-type="missing_evidence" id="fbMissing">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <span>Missing Evidence</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right Column: Live Pipeline Stepper (3.1 to 3.7) -->
+              <div class="console-right-column">
+                <div class="glass-card pipeline-card">
+                  <div class="card-header">
+                    <div class="header-icon-box emerald">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <div>
+                      <h3 class="card-title">3. Community Intelligence Core</h3>
+                      <span class="card-subtitle">Real-Time Stage Telemetry (safe_docs/components_definition.png)</span>
+                    </div>
+                    <div class="stepper-time" id="pipelineTimer">Idle</div>
+                  </div>
+
+                  <div class="pipeline-stepper-list" id="stepperContainer">
+                    <!-- Stages injected dynamically with rich telemetry -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- VIEW 2: PROVENANCE & KNOWLEDGE GRAPH (LAYER 4) -->
+          <section class="view-panel" id="viewProvenance">
+            <div class="provenance-view-container">
+              <div class="provenance-toolbar">
+                <div class="toolbar-info">
+                  <h3>Layer 4: Claim-Source Provenance Graph</h3>
+                  <p>Interactive lineage network connecting User Query, Community Posts, Extracted Claims, and Cross-Referenced Evidence.</p>
+                </div>
+                <div class="graph-legend">
+                  <span class="legend-item"><span class="legend-dot cyan"></span> Query</span>
+                  <span class="legend-item"><span class="legend-dot blue"></span> Stack Overflow</span>
+                  <span class="legend-item"><span class="legend-dot purple"></span> GitHub</span>
+                  <span class="legend-item"><span class="legend-dot orange"></span> Reddit / Forums</span>
+                  <span class="legend-item"><span class="legend-dot green"></span> Validated Evidence</span>
+                </div>
+              </div>
+
+              <div class="graph-viewport-card glass-card">
+                <canvas id="provenanceCanvas" class="provenance-canvas"></canvas>
+                <div class="graph-node-details glass-card" id="graphNodeDetailsPanel">
+                  <h4>Node Inspector</h4>
+                  <p class="inspector-hint">Click on any node in the graph to inspect author reputation, credibility weight, and MinHash independence score.</p>
+                  <div id="inspectorContent"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- VIEW 3: 6-LAYER ARCHITECTURE BLUEPRINT -->
+          <section class="view-panel" id="viewArchitecture">
+            <div class="architecture-view-container">
+              <div class="blueprint-header">
+                <h2>Community Intelligence System Architecture</h2>
+                <p>Interactive technical reference mirroring <code>safe_docs/fyp_architecture_updated.png</code> and <code>only_for_tech.xml</code>.</p>
+              </div>
+
+              <div class="blueprint-layers-grid">
+                
+                <!-- Layer 1 -->
+                <div class="blueprint-layer layer-ui-box">
+                  <div class="layer-header">
+                    <span class="layer-num">1</span>
+                    <h3>USER INTERFACE LAYER</h3>
+                  </div>
+                  <div class="layer-nodes-row">
+                    <div class="bp-node"><strong>User Query</strong><span>Natural Language</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node"><strong>Web / API Interface</strong><span>Chat • Search • API</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node"><strong>Final Response</strong><span>Evidence • Confidence • Citations</span></div>
+                  </div>
+                </div>
+
+                <!-- Layer 2 -->
+                <div class="blueprint-layer layer-router-box">
+                  <div class="layer-header">
+                    <span class="layer-num">2</span>
+                    <h3>QUERY UNDERSTANDING & ROUTING</h3>
+                  </div>
+                  <div class="layer-nodes-row">
+                    <div class="bp-node"><strong>Conversation Context</strong><span>Reference Resolution</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node"><strong>Query Analysis</strong><span>Intent • Domain • Query Type</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node highlight-purple"><strong>Community Intelligence Router</strong><span>Is Community Evidence Useful?</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node"><strong>General RAG / Web Search</strong><span>General Technical Docs</span></div>
+                  </div>
+                </div>
+
+                <!-- Layer 3 -->
+                <div class="blueprint-layer layer-core-box">
+                  <div class="layer-header">
+                    <span class="layer-num">3</span>
+                    <h3>COMMUNITY INTELLIGENCE CORE (Modules 3.1 - 3.7)</h3>
+                  </div>
+                  <div class="core-modules-grid">
+                    <div class="bp-module-card">
+                      <h4>3.1 Community Data Acquisition</h4>
+                      <p>Collect heterogeneous community posts</p>
+                      <div class="tech-tags"><span>Reddit</span><span>GitHub</span><span>Stack Overflow</span><span>Forums</span></div>
+                    </div>
+                    <div class="bp-module-card">
+                      <h4>3.2 Claim & Context Modeling</h4>
+                      <p>Convert posts into structured contextual claims</p>
+                      <div class="tech-tags"><span>Claim Extraction</span><span>Decomposition</span><span>Version/Env Context</span></div>
+                    </div>
+                    <div class="bp-module-card">
+                      <h4>3.3 Evidence Assessment</h4>
+                      <p>Determine how evidence relates to claims</p>
+                      <div class="tech-tags"><span>Supports</span><span>Contradicts</span><span>Qualifies</span></div>
+                    </div>
+                    <div class="bp-module-card">
+                      <h4>3.4 Provenance & Independence</h4>
+                      <p>Determine whether evidence is genuinely independent</p>
+                      <div class="tech-tags"><span>MinHash</span><span>SimHash</span><span>Lineage Chains</span></div>
+                    </div>
+                    <div class="bp-module-card">
+                      <h4>3.5 Reliability & Signals</h4>
+                      <p>Multi-signal weights: Eq 1 S_cred(a, u)</p>
+                      <div class="tech-tags"><span>Votes</span><span>Reputation</span><span>Badges</span><span>Recency Decay</span></div>
+                    </div>
+                    <div class="bp-module-card">
+                      <h4>3.6 Collective Support & Conflict</h4>
+                      <p>Infer support across competing claims</p>
+                      <div class="tech-tags"><span>Truth Discovery</span><span>Conflict Matrix</span><span>Consensus Rate</span></div>
+                    </div>
+                    <div class="bp-module-card">
+                      <h4>3.7 Uncertainty & Abstention</h4>
+                      <p>Prevent weak evidence from becoming false certainty</p>
+                      <div class="tech-tags"><span>Bayesian Calibration</span><span>Epistemic/Aleatoric</span><span>Abstain Guard</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Layer 4 -->
+                <div class="blueprint-layer layer-data-box">
+                  <div class="layer-header">
+                    <span class="layer-num">4</span>
+                    <h3>DATA & KNOWLEDGE LAYER</h3>
+                  </div>
+                  <div class="layer-nodes-row">
+                    <div class="bp-node"><strong>Raw Data Store</strong><span>Community posts • API temp cache</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node"><strong>Retrieved Content</strong><span>Claims • Metadata • Relationships</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node highlight-amber"><strong>Claim-Source Provenance Graph</strong><span>Neo4j Graph Model</span></div>
+                  </div>
+                </div>
+
+                <!-- Layer 5 -->
+                <div class="blueprint-layer layer-llm-box">
+                  <div class="layer-header">
+                    <span class="layer-num">5</span>
+                    <h3>LLM SYNTHESIS & RESPONSE</h3>
+                  </div>
+                  <div class="layer-nodes-row">
+                    <div class="bp-node"><strong>Evidence-Grounded Generation</strong><span>Structured claims • evidence • conflicts</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node"><strong>Answer Formatter</strong><span>Citations • Key claims • Caveats</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node highlight-pink"><strong>Final Evidence Answer</strong><span>Supported claims & Confidence</span></div>
+                  </div>
+                </div>
+
+                <!-- Layer 6 -->
+                <div class="blueprint-layer layer-feedback-box">
+                  <div class="layer-header">
+                    <span class="layer-num">6</span>
+                    <h3>HUMAN / COMMUNITY FEEDBACK LOOP (Continuous Improvement)</h3>
+                  </div>
+                  <div class="layer-nodes-row">
+                    <div class="bp-node"><strong>User Feedback</strong><span>Helpful • Contradiction • Missing evidence</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node"><strong>Feedback Store</strong><span>PostgreSQL / Analytics Store</span></div>
+                    <div class="bp-arrow">➔</div>
+                    <div class="bp-node"><strong>Model Improvement</strong><span>Calibration • Re-ranking • Evaluation</span></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          <!-- VIEW 4: CONFLICT & UNCERTAINTY MATRIX -->
+          <section class="view-panel" id="viewConflicts">
+            <div class="conflicts-view-container">
+              <div class="view-top-summary">
+                <h3>Bayesian Uncertainty & Conflict Resolution Matrix</h3>
+                <p>Quantifying consensus agreement, contradictory claims, and epistemic vs aleatoric uncertainty (Module 3.6 & 3.7).</p>
+              </div>
+
+              <div class="matrix-grid">
+                <!-- Consensus Gauge Card -->
+                <div class="glass-card metric-card">
+                  <h4>Consensus Agreement Rate</h4>
+                  <div class="metric-gauge-wrapper">
+                    <div class="gauge-circle" id="consensusGauge">88%</div>
+                  </div>
+                  <p class="metric-caption">Ratio of supporting vs contradictory community claims</p>
+                </div>
+
+                <!-- Epistemic Uncertainty -->
+                <div class="glass-card metric-card">
+                  <h4>Epistemic Uncertainty</h4>
+                  <div class="metric-val" id="epistemicVal">0.120</div>
+                  <div class="metric-bar-bg"><div class="metric-bar-fill" id="epistemicBar" style="width: 12%;"></div></div>
+                  <p class="metric-caption">Uncertainty stemming from evidence sparsity (decreases with more sources)</p>
+                </div>
+
+                <!-- Aleatoric Uncertainty -->
+                <div class="glass-card metric-card">
+                  <h4>Aleatoric Uncertainty</h4>
+                  <div class="metric-val" id="aleatoricVal">0.080</div>
+                  <div class="metric-bar-bg"><div class="metric-bar-fill" id="aleatoricBar" style="width: 8%;"></div></div>
+                  <p class="metric-caption">Noise from conflicting viewpoints / differing platform version behaviors</p>
+                </div>
+
+                <!-- Abstention Guard -->
+                <div class="glass-card metric-card">
+                  <h4>Abstention Guardrail</h4>
+                  <div class="metric-val status-safe" id="abstentionStatus">PASSED</div>
+                  <p class="metric-caption">Confidence threshold (&gt; 0.40) satisfied. No hallucination risk detected.</p>
+                </div>
+              </div>
+
+              <div class="conflict-claims-table-card glass-card">
+                <h4>Competing Claim Resolutions</h4>
+                <div id="conflictTableContainer" class="table-container">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Claim Context</th>
+                        <th>Source Platform</th>
+                        <th>Evidence Relationship</th>
+                        <th>Credibility Wt ($S_{\text{cred}}$)</th>
+                        <th>Independence ($I$)</th>
+                        <th>Resolution Strategy</th>
+                      </tr>
+                    </thead>
+                    <tbody id="conflictTableBody">
+                      <tr>
+                        <td colspan="6" class="table-empty">Run a query from the console to populate the conflict matrix.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- VIEW 5: DATA SOURCES & SIGNALS -->
+          <section class="view-panel" id="viewSources">
+            <div class="sources-view-container">
+              <div class="view-top-summary">
+                <h3>Heterogeneous Community Data Coverage</h3>
+                <p>Real-time telemetry of multi-platform post ingestion and author credibility scoring (Module 3.1 & 3.5).</p>
+              </div>
+
+              <div class="sources-cards-grid" id="sourcesBreakdownGrid">
+                <!-- Stack Overflow Card -->
+                <div class="glass-card source-stat-card">
+                  <div class="source-card-head">
+                    <span class="source-tag so">Stack Overflow</span>
+                    <span class="source-count" id="soCount">1 Thread</span>
+                  </div>
+                  <p class="source-desc">Accepted answers, vote counts, gold/silver badge weighting ($w_v=0.35, w_r=0.25$).</p>
+                </div>
+
+                <!-- GitHub Issues Card -->
+                <div class="glass-card source-stat-card">
+                  <div class="source-card-head">
+                    <span class="source-tag gh">GitHub</span>
+                    <span class="source-count" id="ghCount">1 Issue</span>
+                  </div>
+                  <p class="source-desc">Issue benchmarks, repository maintainer discussions, reproduction scripts.</p>
+                </div>
+
+                <!-- Reddit Card -->
+                <div class="glass-card source-stat-card">
+                  <div class="source-card-head">
+                    <span class="source-tag reddit">Reddit</span>
+                    <span class="source-count" id="redditCount">1 Post</span>
+                  </div>
+                  <p class="source-desc">Real-world deprecation notices, version caveats, MinHash duplicate checked.</p>
+                </div>
+
+                <!-- Forums & Docs Card -->
+                <div class="glass-card source-stat-card">
+                  <div class="source-card-head">
+                    <span class="source-tag forums">Dev Forums</span>
+                    <span class="source-count" id="forumsCount">1 Post</span>
+                  </div>
+                  <p class="source-desc">Containerized and distributed systems edge-cases, memory limit configurations.</p>
+                </div>
+              </div>
+
+              <div class="glass-card raw-posts-card">
+                <h4>Retrieved Community Posts & Author Profiles</h4>
+                <div class="posts-list" id="rawPostsList">
+                  <div class="empty-state-text">Execute a query to inspect live retrieved posts and author reputation scores.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- VIEW 6: BEAUTIFIED ADMIN DASHBOARD -->
+          <section class="view-panel" id="viewAdmin">
+            <div class="admin-view-container">
+              
+              <!-- Top Administrative Header -->
+              <div class="admin-header-strip glass-card">
+                <div class="admin-header-info">
+                  <div class="admin-badge-strip">
+                    <span class="admin-live-badge"><span class="pulse-dot"></span> Admin Control Center</span>
+                    <span class="db-chip">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 4.02 2 6.5v11C2 20 6.48 22 12 22s10-2 10-4.5v-11C22 4.02 17.52 2 12 2z"/><path d="M2 12c0 2.48 4.48 4.5 10 4.5s10-2.02 10-4.5"/><path d="M2 6.5C2 8.98 6.48 11 12 11s10-2.02 10-4.5"/></svg>
+                      Supabase PostgreSQL
+                    </span>
+                  </div>
+                  <h2 class="admin-main-title">Access Governance & User Delegation</h2>
+                  <p class="admin-main-desc">Manage system roles, oversee platform access policies, and audit community research permissions.</p>
+                </div>
+                <div class="admin-header-actions">
+                  <button id="adminRefreshUsersBtn" class="admin-action-btn secondary" title="Refresh Users">
+                    <svg class="refresh-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span>Refresh</span>
+                  </button>
+                  <button id="openAddUserModalBtn" class="admin-action-btn primary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    <span>Provision User</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Telemetry & KPI Cards -->
+              <div class="admin-kpi-grid">
+                <div class="admin-kpi-card glass-card">
+                  <div class="kpi-icon-box users">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-label">Total Accounts</span>
+                    <span class="kpi-value" id="adminTotalUsersCount">--</span>
+                    <span class="kpi-subtext">Supabase auth directory</span>
+                  </div>
+                </div>
+
+                <div class="admin-kpi-card glass-card">
+                  <div class="kpi-icon-box admins">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-label">Administrators</span>
+                    <span class="kpi-value" id="adminTotalAdminsCount">--</span>
+                    <span class="kpi-subtext">Full system governance</span>
+                  </div>
+                </div>
+
+                <div class="admin-kpi-card glass-card">
+                  <div class="kpi-icon-box members">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-label">Standard Users</span>
+                    <span class="kpi-value" id="adminTotalNormalCount">--</span>
+                    <span class="kpi-subtext">Console & pipeline query</span>
+                  </div>
+                </div>
+
+                <div class="admin-kpi-card glass-card">
+                  <div class="kpi-icon-box security">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-label">Security Protocol</span>
+                    <span class="kpi-value status-active">RBAC ACTIVE</span>
+                    <span class="kpi-subtext">JWT • SHA-256 OTP (10m)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- User Management Table Section -->
+              <div class="admin-table-card glass-card">
+                <div class="admin-table-toolbar">
+                  <div class="admin-search-wrapper">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="adminUserSearchInput" placeholder="Filter users by email address..." class="admin-search-input" />
+                  </div>
+                  <div class="admin-role-filter-group">
+                    <button class="admin-filter-pill active" data-filter="all">All (<span id="filterCountAll">0</span>)</button>
+                    <button class="admin-filter-pill" data-filter="admin">Admins (<span id="filterCountAdmin">0</span>)</button>
+                    <button class="admin-filter-pill" data-filter="normal">Standard (<span id="filterCountNormal">0</span>)</button>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="modern-admin-table">
+                    <thead>
+                      <tr>
+                        <th>User Identity</th>
+                        <th>Current Role</th>
+                        <th>Access Scope</th>
+                        <th>Account Status</th>
+                        <th style="text-align: right;">Role Delegation & Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="adminUsersTableBody">
+                      <tr>
+                        <td colspan="5" class="table-empty">Loading users from Supabase PostgreSQL directory...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- System Telemetry & Live Audit Log -->
+              <div class="admin-telemetry-grid">
+                <div class="glass-card telemetry-card">
+                  <div class="card-header">
+                    <div class="header-icon-box purple">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <div>
+                      <h3 class="card-title">Database & Infrastructure Status</h3>
+                      <span class="card-subtitle">Supabase Cloud Managed Postgres</span>
+                    </div>
+                  </div>
+                  <div class="telemetry-list">
+                    <div class="telemetry-row">
+                      <span class="telemetry-key">Database Engine</span>
+                      <span class="telemetry-val">PostgreSQL 15 (Supabase Pooler)</span>
+                    </div>
+                    <div class="telemetry-row">
+                      <span class="telemetry-key">Session Policy</span>
+                      <span class="telemetry-val">Bearer JWT (24 Hours TTL)</span>
+                    </div>
+                    <div class="telemetry-row">
+                      <span class="telemetry-key">OTP Authentication</span>
+                      <span class="telemetry-val">Cryptographic 6-Digit Random (10m)</span>
+                    </div>
+                    <div class="telemetry-row">
+                      <span class="telemetry-key">Connection Pool</span>
+                      <span class="telemetry-val status-ok">Connected • Port 6543</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="glass-card audit-card">
+                  <div class="card-header">
+                    <div class="header-icon-box cyan">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </div>
+                    <div>
+                      <h3 class="card-title">Live Security Audit Log</h3>
+                      <span class="card-subtitle">Real-time governance telemetry</span>
+                    </div>
+                  </div>
+                  <div class="audit-log-stream" id="adminAuditLogStream">
+                    <div class="audit-entry">
+                      <span class="audit-time">Live</span>
+                      <span class="audit-desc">Admin governance session active. Telemetry stream connected.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Provision User Modal -->
+              <div id="addUserModal" class="admin-modal-backdrop" style="display: none;">
+                <div class="admin-modal glass-card">
+                  <div class="modal-header">
+                    <div class="modal-title-box">
+                      <div class="header-icon-box pink">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                      </div>
+                      <h3>Provision Platform Account</h3>
+                    </div>
+                    <button type="button" id="closeAddUserModalBtn" class="modal-close-btn" aria-label="Close">&times;</button>
+                  </div>
+                  <form id="addUserForm" class="modal-form" autocomplete="off">
+                    <div class="form-group">
+                      <label for="newAdminUserEmail" class="chatgpt-label">User Email Address</label>
+                      <input type="email" id="newAdminUserEmail" placeholder="colleague@example.com" required class="chatgpt-input" />
+                    </div>
+                    <div class="form-group">
+                      <label for="newAdminUserRole" class="chatgpt-label">Initial Role Assignment</label>
+                      <select id="newAdminUserRole" class="chatgpt-input chatgpt-select">
+                        <option value="normal">Standard User (Research Console Access)</option>
+                        <option value="admin">Administrator (Governance & Full Access)</option>
+                      </select>
+                    </div>
+                    <div id="addUserModalError" class="chatgpt-alert-box" style="display: none; margin-top: 0.5rem;">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      <span id="addUserModalErrorMsg"></span>
+                    </div>
+                    <div class="modal-actions">
+                      <button type="button" id="cancelAddUserBtn" class="admin-action-btn secondary">Cancel</button>
+                      <button type="submit" id="submitAddUserBtn" class="admin-action-btn primary">Provision Account</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- VIEW: ADMIN AUDIT LOGS -->
+          <section class="view-panel" id="viewAdmin-audit">
+            <div class="console-grid" style="display: block;">
+              <div class="glass-card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                  <div class="header-icon-box cyan">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                  </div>
+                  <div>
+                    <h3 class="card-title">System Audit Logs</h3>
+                    <span class="card-subtitle">Activity monitoring and security events</span>
+                  </div>
+                </div>
+                <div class="table-container">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="adminAuditTableBody">
+                      <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px;">
+                          No audit logs available
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </main>
+      </div>
+
+    </div>
+
+    <!-- Detailed Account Settings Modal (Global Overlay) -->
+    <div id="accountSettingsModal" class="admin-modal-backdrop" style="display: none;">
+      <div class="account-settings-modal">
+        <div class="modal-header">
+          <div class="modal-title-box">
+            <div class="header-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <h3 style="margin: 0; color: #fff; font-size: 17px; font-weight: 700; letter-spacing: -0.2px;">Account Settings</h3>
+              <p style="margin: 2px 0 0; color: #a1a1aa; font-size: 12px;">Manage credentials, security protocols, and preferences</p>
+            </div>
+          </div>
+          <button type="button" id="closeAccountSettingsBtn" class="modal-close-icon-btn" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="account-modal-body">
+          <!-- User Profile Card -->
+          <div class="account-profile-card">
+            <div class="account-avatar-large" id="accountAvatarLarge">B</div>
+            <div class="account-details">
+              <h4 id="accountDetailName">Benin7070</h4>
+              <p id="accountDetailEmail">benindev06@gmail.com</p>
+              <div class="account-badge-row">
+                <span id="accountDetailRole" class="badge-tag layer3-tag">ADMINISTRATOR</span>
+                <span class="account-status-pill"><span class="white-pulse-dot"></span> Active Session</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security & Password Reset Section -->
+          <div class="account-section-card">
+            <div class="account-section-header">
+              <div class="section-icon-pill">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div>
+                <h4 class="section-title">Password & Authentication</h4>
+                <p class="section-subtitle">Reset your account password with two-factor email OTP verification</p>
+              </div>
+            </div>
+
+            <!-- Current Password Status Banner -->
+            <div class="auth-status-banner" id="accountAuthStatusBanner">
+              <div class="status-banner-left">
+                <div class="status-icon-check">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <div class="status-banner-title" id="accountPasswordStatusTitle">Password Configured</div>
+                  <div class="status-banner-desc" id="accountPasswordStatusDesc">You can sign in with your password or one-time email OTP.</div>
+                </div>
+              </div>
+              <button type="button" id="startChangePasswordBtn" class="change-pwd-btn">
+                Change Password
+              </button>
+            </div>
+
+            <!-- Password Reset Interactive Flow -->
+            <div class="password-reset-flow-container">
+              <!-- Initial CTA to request OTP -->
+              <div id="accountResetStep1" class="reset-substep" style="display: none;">
+                <p class="reset-prompt-text">
+                  To set a new password, click below to receive a secure 6-digit verification code at <strong id="resetTargetEmailDisplay">benindev06@gmail.com</strong>.
+                </p>
+                <button type="button" id="accountRequestResetOtpBtn" class="admin-action-btn primary" style="width: auto;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>
+                  <span>Request Verification Code (OTP)</span>
+                </button>
+              </div>
+
+              <!-- Form revealed for resetting password -->
+              <form id="accountResetPasswordForm" class="reset-substep" style="display: none;" autocomplete="off">
+                <div class="reset-notice-box">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <span id="resetNoticeText">A 6-digit verification code was dispatched to your email. Enter the code and your new password.</span>
+                </div>
+
+                <div class="form-group" style="margin-top: 14px;">
+                  <label for="accountResetOtp" class="chatgpt-label">6-Digit Verification Code</label>
+                  <div class="otp-input-with-action">
+                    <input type="text" id="accountResetOtp" maxlength="6" inputmode="numeric" placeholder="000000" class="chatgpt-input chatgpt-otp-field" required />
+                    <button type="button" id="accountResetResendOtpBtn" class="otp-send-code-btn">Resend code</button>
+                  </div>
+                  <div class="chatgpt-resend-row" style="margin-top: 6px; justify-content: flex-start;">
+                    <span id="accountResetCountdownText" style="color: #a1a1aa; font-size: 12px;">Verification code valid for 10 minutes</span>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 12px;">
+                  <label for="accountResetNewPassword" class="chatgpt-label">New Password (min 6 characters)</label>
+                  <div class="input-focus-container">
+                    <input type="password" id="accountResetNewPassword" minlength="6" placeholder="Enter new password" class="chatgpt-input" required />
+                    <button type="button" class="password-toggle-btn" id="toggleResetNewPasswordBtn" title="Toggle password visibility">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 12px;">
+                  <label for="accountResetConfirmPassword" class="chatgpt-label">Confirm New Password</label>
+                  <div class="input-focus-container">
+                    <input type="password" id="accountResetConfirmPassword" minlength="6" placeholder="Re-enter new password" class="chatgpt-input" required />
+                    <button type="button" class="password-toggle-btn" id="toggleResetConfirmPasswordBtn" title="Toggle password visibility">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div id="accountResetAlert" class="chatgpt-alert-box" style="display: none; margin-top: 12px;">
+                  <span id="accountResetAlertMsg"></span>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 18px;">
+                  <button type="button" id="cancelAccountResetBtn" class="admin-action-btn secondary">Cancel</button>
+                  <button type="submit" id="submitAccountResetBtn" class="admin-action-btn primary">Verify Code & Update Password</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container (Global Overlay) -->
+    <div id="adminToast" class="admin-toast" style="display: none;">
+      <span class="toast-dot"></span>
+      <span id="adminToastMsg">Notification</span>
+    </div>
+
+    <script type="module" src="/src/auth.js"></script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

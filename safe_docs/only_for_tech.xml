@@ -1,0 +1,437 @@
+<mxfile host="app.diagrams.net" modified="2026-09-21T00:00:00.000Z" agent="ChatGPT" version="24.7.17">
+  <diagram id="community-intelligence-architecture" name="Community Intelligence Architecture">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+
+        <!-- ROOT -->
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ====================================================== -->
+        <!-- TITLE -->
+        <!-- ====================================================== -->
+
+        <mxCell id="title"
+          value="Community Intelligence System Architecture"
+          style="text;html=1;strokeColor=none;fillColor=none;fontSize=26;fontStyle=1;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="450" y="20" width="700" height="45" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="subtitle"
+          value="Modules • Technology Stack • Evidence Flow"
+          style="text;html=1;strokeColor=none;fillColor=none;fontSize=14;fontColor=#64748B;align=center;"
+          vertex="1" parent="1">
+          <mxGeometry x="500" y="62" width="600" height="30" as="geometry"/>
+        </mxCell>
+
+
+        <!-- ====================================================== -->
+        <!-- 1. USER INTERFACE -->
+        <!-- ====================================================== -->
+
+        <mxCell id="layer_ui"
+          value="1. USER INTERFACE LAYER"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F1FF;strokeColor=#6EA8FE;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#173B6C;verticalAlign=top;spacingTop=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="105" width="1480" height="110" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="user_query"
+          value="&lt;b&gt;User Query&lt;/b&gt;&lt;br&gt;Natural Language"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6EA8FE;fontSize=14;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="300" y="140" width="230" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="interface"
+          value="&lt;b&gt;Web / API Interface&lt;/b&gt;&lt;br&gt;Chat • Search • API"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6EA8FE;fontSize=14;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="670" y="140" width="230" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="final_response"
+          value="&lt;b&gt;Final Response&lt;/b&gt;&lt;br&gt;Evidence • Confidence • Citations"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6EA8FE;fontSize=14;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1040" y="140" width="280" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_ui1"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="user_query" target="interface">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_ui2"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="interface" target="final_response">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+
+        <!-- ====================================================== -->
+        <!-- 2. QUERY ROUTING -->
+        <!-- ====================================================== -->
+
+        <mxCell id="layer_router"
+          value="2. QUERY UNDERSTANDING &amp; ROUTING"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3EFFF;strokeColor=#9B7EDE;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#49317A;verticalAlign=top;spacingTop=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="245" width="1480" height="135" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="query_analysis"
+          value="&lt;b&gt;Query Analysis&lt;/b&gt;&lt;br&gt;• Intent classification&lt;br&gt;• Domain / entity detection&lt;br&gt;• Query type"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9B7EDE;fontSize=13;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="230" y="285" width="250" height="75" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ci_router"
+          value="&lt;b&gt;Community Intelligence Router&lt;/b&gt;&lt;br&gt;Is community evidence useful?&lt;br&gt;CI Pipeline / Normal RAG"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9B7EDE;fontSize=13;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="570" y="285" width="300" height="75" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="normal_rag"
+          value="&lt;b&gt;Normal RAG / Web Search&lt;/b&gt;&lt;br&gt;General / authoritative questions"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9B7EDE;fontSize=13;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="970" y="285" width="270" height="75" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="router_stack"
+          value="&lt;b&gt;Technology&lt;/b&gt;&lt;br&gt;LLM • LangGraph / LangChain&lt;br&gt;FastAPI • classifier"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#9B7EDE;fontSize=12;fontColor=#49317A;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1280" y="285" width="220" height="75" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_router1"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="query_analysis" target="ci_router">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_router2"
+          value="No"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;fontSize=11;"
+          edge="1" parent="1" source="ci_router" target="normal_rag">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+
+        <!-- ====================================================== -->
+        <!-- 3. CORE COMMUNITY INTELLIGENCE -->
+        <!-- ====================================================== -->
+
+        <mxCell id="layer_ci"
+          value="3. COMMUNITY INTELLIGENCE CORE"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAFBF0;strokeColor=#55B879;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#176B3A;verticalAlign=top;spacingTop=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="410" width="1480" height="360" as="geometry"/>
+        </mxCell>
+
+        <!-- Module 1 -->
+        <mxCell id="m1"
+          value="&lt;b&gt;3.1 Community Data Acquisition&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;br&gt;Collect heterogeneous community information&lt;br&gt;&lt;br&gt;• Reddit&lt;br&gt;• GitHub&lt;br&gt;• Stack Overflow&lt;br&gt;• Forums&lt;br&gt;• Docs / Articles&lt;br&gt;&lt;br&gt;&lt;b&gt;Tech:&lt;/b&gt; Python • APIs • AsyncIO • Playwright"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B879;fontSize=12;fontColor=#172033;align=left;verticalAlign=top;spacing=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="465" width="205" height="270" as="geometry"/>
+        </mxCell>
+
+        <!-- Module 2 -->
+        <mxCell id="m2"
+          value="&lt;b&gt;3.2 Claim &amp; Context Modeling&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;br&gt;Convert posts into structured contextual claims&lt;br&gt;&lt;br&gt;• Claim extraction&lt;br&gt;• Decomposition&lt;br&gt;• Semantic grouping&lt;br&gt;• Version / platform / environment&lt;br&gt;• Timestamp context&lt;br&gt;&lt;br&gt;&lt;b&gt;Tech:&lt;/b&gt; LLM • Transformers • Sentence-BERT"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B879;fontSize=12;fontColor=#172033;align=left;verticalAlign=top;spacing=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="310" y="465" width="205" height="270" as="geometry"/>
+        </mxCell>
+
+        <!-- Module 3 -->
+        <mxCell id="m3"
+          value="&lt;b&gt;3.3 Evidence Assessment&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;br&gt;Determine how evidence relates to claims&lt;br&gt;&lt;br&gt;• Evidence retrieval&lt;br&gt;• Supports&lt;br&gt;• Contradicts&lt;br&gt;• Qualifies&lt;br&gt;• Evidence quality&lt;br&gt;&lt;br&gt;&lt;b&gt;Tech:&lt;/b&gt; LLM reranker • Cross-encoder • Qdrant"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B879;fontSize=12;fontColor=#172033;align=left;verticalAlign=top;spacing=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="535" y="465" width="205" height="270" as="geometry"/>
+        </mxCell>
+
+        <!-- Module 4 -->
+        <mxCell id="m4"
+          value="&lt;b&gt;3.4 Provenance &amp; Independence&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;br&gt;Determine whether evidence is genuinely independent&lt;br&gt;&lt;br&gt;• Source lineage&lt;br&gt;• Duplicate detection&lt;br&gt;• Quote / copy detection&lt;br&gt;• Derived content&lt;br&gt;• Evidence chains&lt;br&gt;&lt;br&gt;&lt;b&gt;Tech:&lt;/b&gt; MinHash / SimHash • Neo4j • graph algorithms"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B879;fontSize=12;fontColor=#172033;align=left;verticalAlign=top;spacing=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="760" y="465" width="205" height="270" as="geometry"/>
+        </mxCell>
+
+        <!-- Module 5 -->
+        <mxCell id="m5"
+          value="&lt;b&gt;3.5 Reliability &amp; Community Signals&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;br&gt;Use source and contributor signals as evidence weights&lt;br&gt;&lt;br&gt;• Source reliability&lt;br&gt;• Contributor history&lt;br&gt;• Community agreement&lt;br&gt;• Recency / relevance&lt;br&gt;• Platform metadata&lt;br&gt;&lt;br&gt;&lt;b&gt;Tech:&lt;/b&gt; Community Notes concepts • RA-RAG ideas • ranking models"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B879;fontSize=12;fontColor=#172033;align=left;verticalAlign=top;spacing=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="985" y="465" width="205" height="270" as="geometry"/>
+        </mxCell>
+
+        <!-- Module 6 -->
+        <mxCell id="m6"
+          value="&lt;b&gt;3.6 Collective Support &amp; Conflict Inference&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;br&gt;Infer support across competing claims&lt;br&gt;&lt;br&gt;• Evidence aggregation&lt;br&gt;• Conflict resolution&lt;br&gt;• Context-aware comparison&lt;br&gt;• Truth-discovery methods&lt;br&gt;• Community agreement&lt;br&gt;&lt;br&gt;&lt;b&gt;Tech:&lt;/b&gt; Probabilistic models • Graph reasoning • LLM reasoning"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B879;fontSize=12;fontColor=#172033;align=left;verticalAlign=top;spacing=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="1210" y="465" width="205" height="270" as="geometry"/>
+        </mxCell>
+
+        <!-- Module 7 -->
+        <mxCell id="m7"
+          value="&lt;b&gt;3.7 Uncertainty &amp; Abstention&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;br&gt;Prevent weak evidence from becoming false certainty&lt;br&gt;&lt;br&gt;• Confidence estimation&lt;br&gt;• Insufficient evidence&lt;br&gt;• Conflicting evidence&lt;br&gt;• Calibration&lt;br&gt;• Unknown / abstain&lt;br&gt;&lt;br&gt;&lt;b&gt;Tech:&lt;/b&gt; Bayesian methods • Calibration • Confidence models"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B879;fontSize=12;fontColor=#172033;align=left;verticalAlign=top;spacing=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="1435" y="465" width="80" height="270" as="geometry"/>
+        </mxCell>
+
+        <!-- CI flow arrows -->
+        <mxCell id="e_m1_m2"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="m1" target="m2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_m2_m3"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="m2" target="m3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_m3_m4"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="m3" target="m4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_m4_m5"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="m4" target="m5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_m5_m6"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="m5" target="m6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_m6_m7"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="m6" target="m7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+
+        <!-- ====================================================== -->
+        <!-- 4. DATA STORAGE -->
+        <!-- ====================================================== -->
+
+        <mxCell id="layer_data"
+          value="4. DATA &amp; KNOWLEDGE LAYER"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF7E6;strokeColor=#E5A93D;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#79520B;verticalAlign=top;spacingTop=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="800" width="1480" height="125" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="raw_store"
+          value="&lt;b&gt;Raw Data Store&lt;/b&gt;&lt;br&gt;Community posts • API responses&lt;br&gt;&lt;br&gt;&lt;b&gt;S3 / MinIO / GCS&lt;/b&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E5A93D;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="130" y="845" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="processed_store"
+          value="&lt;b&gt;Processed Data&lt;/b&gt;&lt;br&gt;Documents • Claims • Evidence&lt;br&gt;&lt;br&gt;&lt;b&gt;PostgreSQL&lt;/b&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E5A93D;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="430" y="845" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="graph_store"
+          value="&lt;b&gt;Knowledge / Provenance Graph&lt;/b&gt;&lt;br&gt;Claims • Sources • Relationships&lt;br&gt;&lt;br&gt;&lt;b&gt;Neo4j&lt;/b&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E5A93D;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="730" y="845" width="250" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="vector_store"
+          value="&lt;b&gt;Vector Store&lt;/b&gt;&lt;br&gt;Embeddings • Semantic Retrieval&lt;br&gt;&lt;br&gt;&lt;b&gt;Qdrant&lt;/b&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E5A93D;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1060" y="845" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="analytics_store"
+          value="&lt;b&gt;Metadata &amp; Analytics&lt;/b&gt;&lt;br&gt;Logs • Evaluation • Metrics&lt;br&gt;&lt;br&gt;&lt;b&gt;ClickHouse / Elasticsearch&lt;/b&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E5A93D;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1360" y="845" width="150" height="60" as="geometry"/>
+        </mxCell>
+
+
+        <!-- ====================================================== -->
+        <!-- 5. LLM SYNTHESIS -->
+        <!-- ====================================================== -->
+
+        <mxCell id="layer_llm"
+          value="5. LLM SYNTHESIS &amp; RESPONSE"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0F8;strokeColor=#E56FA6;strokeWidth=2;fontSize=16;fontStyle=1;fontColor=#8A2357;verticalAlign=top;spacingTop=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="955" width="1480" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="grounded_llm"
+          value="&lt;b&gt;Evidence-Grounded Generation&lt;/b&gt;&lt;br&gt;Structured claims • evidence • conflicts • uncertainty&lt;br&gt;&lt;br&gt;&lt;b&gt;GPT / Claude / Llama&lt;/b&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E56FA6;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="220" y="995" width="300" height="65" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="answer_formatter"
+          value="&lt;b&gt;Answer Formatter&lt;/b&gt;&lt;br&gt;Citations • Key claims • Caveats&lt;br&gt;Confidence explanation"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E56FA6;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="650" y="995" width="280" height="65" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="response_output"
+          value="&lt;b&gt;Final Evidence-Grounded Answer&lt;/b&gt;&lt;br&gt;Supported claims • Contradictions • Uncertainty"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E56FA6;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1060" y="995" width="300" height="65" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_llm1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="grounded_llm" target="answer_formatter">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_llm2"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="answer_formatter" target="response_output">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+
+        <!-- ====================================================== -->
+        <!-- 6. FEEDBACK -->
+        <!-- ====================================================== -->
+
+        <mxCell id="layer_feedback"
+          value="6. OPTIONAL — HUMAN / COMMUNITY FEEDBACK LOOP"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF9FF;strokeColor=#55B9D6;strokeWidth=2;dashed=1;fontSize=15;fontStyle=1;fontColor=#17627A;verticalAlign=top;spacingTop=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="1105" width="1480" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="feedback"
+          value="&lt;b&gt;User / Community Feedback&lt;/b&gt;&lt;br&gt;Helpful • Incorrect • Missing evidence"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B9D6;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="300" y="1130" width="270" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="feedback_store"
+          value="&lt;b&gt;Feedback Store&lt;/b&gt;&lt;br&gt;PostgreSQL / Analytics"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B9D6;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="700" y="1130" width="250" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="model_improvement"
+          value="&lt;b&gt;Model / Ranking Improvement&lt;/b&gt;&lt;br&gt;Calibration • Re-ranking • Evaluation"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55B9D6;fontSize=12;fontColor=#172033;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1080" y="1130" width="300" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_fb1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;dashed=1;"
+          edge="1" parent="1" source="feedback" target="feedback_store">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_fb2"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;dashed=1;"
+          edge="1" parent="1" source="feedback_store" target="model_improvement">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+
+        <!-- ====================================================== -->
+        <!-- CROSS-LAYER CONNECTIONS -->
+        <!-- ====================================================== -->
+
+        <!-- UI → Router -->
+        <mxCell id="e_ui_router"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="interface" target="query_analysis">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Router → CI -->
+        <mxCell id="e_router_ci"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="ci_router" target="m1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- CI → Data -->
+        <mxCell id="e_ci_data"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=both;strokeWidth=1;dashed=1;"
+          edge="1" parent="1" source="m4" target="graph_store">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_claim_data"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=both;strokeWidth=1;dashed=1;"
+          edge="1" parent="1" source="m2" target="processed_store">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_vector"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=both;strokeWidth=1;dashed=1;"
+          edge="1" parent="1" source="m3" target="vector_store">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- CI → LLM -->
+        <mxCell id="e_ci_llm"
+          value="Structured evidence"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;fontSize=11;"
+          edge="1" parent="1" source="m7" target="grounded_llm">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- LLM → UI -->
+        <mxCell id="e_output_ui"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;"
+          edge="1" parent="1" source="response_output" target="final_response">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Feedback back to system -->
+        <mxCell id="e_feedback_loop"
+          value="Continuous improvement"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;dashed=1;fontSize=11;"
+          edge="1" parent="1" source="model_improvement" target="ci_router">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1450" y="1220"/>
+              <mxPoint x="1450" y="260"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
