@@ -12,24 +12,57 @@ services:
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     envVars:
+      # Runtime & Environment
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: ENVIRONMENT
+        value: production
+      - key: APP_NAME
+        value: Community Intelligence Platform
+
+      # Database (Supabase PostgreSQL Connection String)
       - key: SUPABASE_DB_URL
         sync: false
+
+      # Authentication & Security Protocol
       - key: SECRET_KEY
         generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "10080"
+
+      # LLM Providers Configuration
+      - key: DEFAULT_LLM_PROVIDER
+        value: openai
       - key: OPENAI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+
+      # Email / OTP Verification (SMTP2GO)
+      - key: SMTP_HOST
+        value: mail.smtp2go.com
+      - key: SMTP_PORT
+        value: "2525"
+      - key: SMTP_BASE_URL
+        value: https://api.smtp2go.com/v3
+      - key: SMTP_FROM_NAME
+        value: Community Intelligence Platform
       - key: SMTP2GO_API_KEY
         sync: false
-      - key: SENDER_EMAIL
+      - key: SMTP_FROM_EMAIL
         sync: false
-      - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: "10080"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+
+      # Optional Community Ingestion API Keys
+      - key: STACK_EXCHANGE_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
 
   # =========================================================================
   # 2. Vite React Frontend (Static Site with SPA Routing)
