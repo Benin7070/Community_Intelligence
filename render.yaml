@@ -74,7 +74,7 @@ services:
     plan: free
     region: oregon
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
