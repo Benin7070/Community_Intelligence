@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # External APIs
     STACK_EXCHANGE_API_KEY: str = ""
     GITHUB_TOKEN: str = ""
+    
+    # Admin Alert Emails
+    ADMIN_EMAILS: str = ""
 
     # CORS Settings
     FRONTEND_URL: str = ""

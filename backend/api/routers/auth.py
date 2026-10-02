@@ -239,13 +239,7 @@ def verify_otp(request: OTPVerify, db: Session = Depends(get_db)):
 # Admin User Management & System Health Endpoints
 # -----------------------------------------------------------------------------
 
-@router.get("/system-health")
-async def get_system_health(
-    service: Optional[str] = None,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin)
-):
-    """Run diagnostics and check status of connected services (Supabase, SMTP2GO, WS Gateway, R2, LLM)."""
+async def run_system_health_checks(service: Optional[str] = None, db: Session = None):
     import time
     from sqlalchemy import text
     from database import engine
@@ -254,6 +248,8 @@ async def get_system_health(
     import boto3
     from config import settings
     import os
+    import httpx
+    import asyncio
     
     timestamp = datetime.utcnow().isoformat() + "Z"
     services = []
@@ -262,7 +258,11 @@ async def get_system_health(
     if not service or service == "supabase_db":
         db_start = time.time()
         try:
-            ping_val = db.execute(text("SELECT 1")).scalar()
+            if db:
+                ping_val = db.execute(text("SELECT 1")).scalar()
+            else:
+                with engine.connect() as conn:
+                    ping_val = conn.execute(text("SELECT 1")).scalar()
             db_latency = round((time.time() - db_start) * 1000)
             
             host = getattr(engine.url, 'host', 'localhost')
@@ -427,6 +427,54 @@ async def get_system_health(
                 "message": f"LLM check failed: {str(e)}",
                 "details": {}
             })
+            
+    # 7. Data Sources Check (StackOverflow, GitHub, HackerNews)
+    if not service or service == "data_sources":
+        sources_start = time.time()
+        try:
+            # Check API endpoints reachability concurrently
+            async def check_sources():
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    so_req = client.get("https://api.stackexchange.com/2.3/info?site=stackoverflow")
+                    gh_headers = {"Authorization": f"Bearer {settings.GITHUB_TOKEN}"} if settings.GITHUB_TOKEN else {}
+                    gh_req = client.get("https://api.github.com/rate_limit", headers=gh_headers)
+                    hn_req = client.get("https://hn.algolia.com/api/v1/search?query=test&hitsPerPage=1")
+                    
+                    so_res, gh_res, hn_res = await asyncio.gather(so_req, gh_req, hn_req, return_exceptions=True)
+                    
+                    return {
+                        "stackoverflow": "OK" if isinstance(so_res, httpx.Response) and so_res.status_code == 200 else "Failed",
+                        "github": "OK" if isinstance(gh_res, httpx.Response) and gh_res.status_code == 200 else "Failed",
+                        "hackernews": "OK" if isinstance(hn_res, httpx.Response) and hn_res.status_code == 200 else "Failed",
+                    }
+                    
+            source_statuses = await check_sources()
+            
+            sources_latency = round((time.time() - sources_start) * 1000)
+            is_healthy = all(v == "OK" for v in source_statuses.values())
+            
+            services.append({
+                "id": "data_sources",
+                "name": "Data Sources (SO, GitHub, HN)",
+                "type": "sources",
+                "status": "active" if is_healthy else "degraded",
+                "healthy": is_healthy,
+                "latency_ms": sources_latency,
+                "message": "All data sources operational." if is_healthy else "One or more data sources degraded.",
+                "details": source_statuses
+            })
+        except Exception as e:
+            sources_latency = round((time.time() - sources_start) * 1000)
+            services.append({
+                "id": "data_sources",
+                "name": "Data Sources (SO, GitHub, HN)",
+                "type": "sources",
+                "status": "error",
+                "healthy": False,
+                "latency_ms": sources_latency,
+                "message": f"Data sources check failed: {str(e)}",
+                "details": {"error": str(e)}
+            })
 
     all_healthy = all(s.get("healthy", False) for s in services)
     any_error = any(s.get("status") == "error" for s in services)
@@ -438,6 +486,15 @@ async def get_system_health(
         "auto_interval_minutes": 10,
         "services": services
     }
+
+@router.get("/system-health")
+async def get_system_health(
+    service: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Run diagnostics and check status of connected services."""
+    return await run_system_health_checks(service, db)
 
 @router.get("/users", response_model=List[UserResponse])
 def get_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_admin)):

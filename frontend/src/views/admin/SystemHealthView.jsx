@@ -44,6 +44,16 @@ const DEFAULT_SERVICES = [
     details: { endpoint: '...', bucket: '...', access_key: '...' }
   },
   {
+    id: 'data_sources',
+    name: 'Data Sources (SO, GitHub, HN)',
+    type: 'sources',
+    status: 'idle',
+    healthy: false,
+    latency_ms: 0,
+    message: 'Ready for diagnostic test...',
+    details: { stackoverflow: '...', github: '...', hackernews: '...' }
+  },
+  {
     id: 'llm_api',
     name: 'LLM API Providers',
     type: 'ai',
@@ -58,12 +68,17 @@ const DEFAULT_SERVICES = [
 export default function SystemHealthView() {
   const panelRef = useRef(null);
 
-  // Initialize from localStorage or use defaults
   const [healthData, setHealthData] = useState(() => {
     try {
       const saved = localStorage.getItem('ci_admin_health_data');
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Merge DEFAULT_SERVICES with saved state to ensure new services are displayed
+        const mergedServices = DEFAULT_SERVICES.map(defaultSvc => {
+          const savedSvc = parsed.services?.find(s => s.id === defaultSvc.id);
+          return savedSvc ? savedSvc : defaultSvc;
+        });
+        return { ...parsed, services: mergedServices };
       }
     } catch (e) {
       console.warn("Failed to parse saved health data");
@@ -87,6 +102,25 @@ export default function SystemHealthView() {
     } catch(e) {}
     return [];
   });
+  
+  // 10-minute auto-check countdown timer
+  const [timeUntilNextCheck, setTimeUntilNextCheck] = useState(600);
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeUntilNextCheck(prev => {
+        if (prev <= 1) {
+          // Trigger silent background refresh when timer hits 0
+          // Wait, the backend has an independent worker doing the actual emailing,
+          // but we can also auto-refresh the UI data here when the timer fires!
+          runHealthCheck();
+          return 600;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const runHealthCheck = useCallback(async (serviceId = null) => {
     if (serviceId) {
@@ -95,6 +129,8 @@ export default function SystemHealthView() {
       const allLoading = {};
       DEFAULT_SERVICES.forEach(s => allLoading[s.id] = true);
       setLoadingServices(allLoading);
+      // Reset the countdown timer if a global manual check is run
+      setTimeUntilNextCheck(600);
     }
     
     setError(null);
@@ -182,6 +218,11 @@ export default function SystemHealthView() {
   const services = healthData?.services || DEFAULT_SERVICES;
   const overallHealthy = healthData?.overall_status === 'active';
   const isAnyLoading = Object.values(loadingServices).some(v => v);
+  
+  // Format timer text (MM:SS)
+  const minutes = Math.floor(timeUntilNextCheck / 60);
+  const seconds = timeUntilNextCheck % 60;
+  const timerText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
   return (
     <div className="system-health-container" ref={panelRef} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -193,6 +234,10 @@ export default function SystemHealthView() {
             <span className={`admin-live-badge ${overallHealthy ? 'status-ok' : (healthData.overall_status === 'idle' ? 'status-ready' : '')}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <span className="pulse-dot" style={{ background: overallHealthy ? '#10b981' : (healthData.overall_status === 'idle' ? '#fbbf24' : '#ef4444') }}></span>
               {overallHealthy ? 'ALL SYSTEMS OPERATIONAL' : (healthData.overall_status === 'idle' ? 'SYSTEM IDLE / UNTESTED' : 'SYSTEM DEGRADED')}
+            </span>
+            <span style={{ fontSize: '11px', color: '#38bdf8', background: 'rgba(56, 189, 248, 0.1)', padding: '2px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Auto-check in {timerText}
             </span>
           </div>
           <h2 className="admin-main-title" style={{ fontSize: '20px', fontWeight: 600, color: '#ffffff' }}>
@@ -497,6 +542,73 @@ export default function SystemHealthView() {
                 <button 
                   className="admin-action-btn secondary" 
                   onClick={() => runHealthCheck('cloudflare_r2')}
+                  disabled={isLoading}
+                  style={{ padding: '4px 10px', fontSize: '12px', marginLeft: '10px' }}
+                >
+                  {isLoading ? 'Testing...' : 'Test'}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Service 4.5: Data Sources */}
+        {(() => {
+          const s = services.find(item => item.id === 'data_sources');
+          const isOk = s?.healthy ?? false;
+          const isIdle = s?.status === 'idle';
+          const isLoading = loadingServices['data_sources'];
+          
+          return (
+            <div className="glass-card service-health-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', borderRadius: '12px', background: 'rgba(18, 18, 20, 0.85)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div className="header-icon-box pink" style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(236, 72, 153, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ec4899' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#ffffff' }}>Data Sources</h3>
+                    <span style={{ fontSize: '12px', color: '#a1a1aa' }}>SO, GitHub, HN APIs</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                  <span className={`status-pill ${isIdle ? 'status-ready' : (isOk ? 'status-active' : 'status-ready')}`} style={{ fontSize: '11px', background: isIdle ? 'rgba(251, 191, 36, 0.2)' : (isOk ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'), color: isIdle ? '#fbbf24' : (isOk ? '#10b981' : '#ef4444') }}>
+                    {isIdle ? 'UNTESTED' : (isOk ? 'ONLINE' : 'DEGRADED')}
+                  </span>
+                  {!isIdle && s && (
+                    <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#38bdf8' }}>
+                      {s.latency_ms} ms ping
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 14px', borderRadius: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#a1a1aa' }}>Stack Overflow</span>
+                  <span style={{ color: s?.details?.stackoverflow === 'OK' ? '#10b981' : '#ef4444', fontFamily: 'JetBrains Mono' }}>{s?.details?.stackoverflow || '...'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#a1a1aa' }}>GitHub</span>
+                  <span style={{ color: s?.details?.github === 'OK' ? '#10b981' : '#ef4444', fontFamily: 'JetBrains Mono' }}>{s?.details?.github || '...'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#a1a1aa' }}>HackerNews</span>
+                  <span style={{ color: s?.details?.hackernews === 'OK' ? '#10b981' : '#ef4444', fontFamily: 'JetBrains Mono' }}>{s?.details?.hackernews || '...'}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <p style={{ fontSize: '12px', color: '#a1a1aa', margin: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {s?.message}
+                </p>
+                <button 
+                  className="admin-action-btn secondary" 
+                  onClick={() => runHealthCheck('data_sources')}
                   disabled={isLoading}
                   style={{ padding: '4px 10px', fontSize: '12px', marginLeft: '10px' }}
                 >

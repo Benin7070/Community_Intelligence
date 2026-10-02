@@ -118,6 +118,45 @@ async def _send_smtp2go_api(from_email: str, from_name: str, to_email: str, subj
                 return True
         raise Exception(f"SMTP2GO API returned {resp.status_code}: {resp.text}")
 
+async def send_email(to_email: str, subject: str, html_content: str, text_content: str = "") -> bool:
+    """Send a generic email via SMTP2GO API or SMTP."""
+    from_name = settings.SMTP_FROM_NAME
+    from_email = settings.SMTP_FROM_EMAIL
+    
+    if not text_content:
+        # Fallback text content if only HTML is provided
+        import re
+        text_content = re.sub('<[^<]+>', '', html_content)
+        
+    if settings.SMTP2GO_API_KEY:
+        try:
+            print(f"[Mailer] Dispatching email to {to_email} via SMTP2GO API...")
+            await _send_smtp2go_api(from_email, from_name, to_email, subject, html_content, text_content)
+            return True
+        except Exception as e:
+            print(f"[Mailer] SMTP2GO API error: {e}")
+            
+    if settings.SMTP_USER and settings.SMTP_PASSWORD:
+        try:
+            print(f"[Mailer] Dispatching email to {to_email} via SMTP...")
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = f"{from_name} <{from_email}>" if from_name else from_email
+            msg["To"] = to_email
+
+            part1 = MIMEText(text_content, "plain")
+            part2 = MIMEText(html_content, "html")
+            msg.attach(part1)
+            msg.attach(part2)
+
+            await asyncio.to_thread(_send_smtp_sync, from_email, to_email, msg)
+            return True
+        except Exception as e:
+            print(f"[Mailer] SMTP send failed: {e}")
+            
+    print(f"[Mailer] Failed to send email. Check credentials.")
+    return False
+
 async def send_otp_email(to_email: str, otp: str) -> bool:
     subject = f"{otp} is your Community Intelligence verification code"
     text_content = (

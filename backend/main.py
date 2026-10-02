@@ -60,15 +60,78 @@ async def render_keep_alive_worker():
             except Exception as e:
                 print(f"[KeepAlive] Worker loop exception: {e}")
 
+async def system_health_auto_worker():
+    """
+    Autonomous System Health Worker:
+    Runs every 10 minutes. If any service is down, it sends an email to the admin.
+    """
+    from api.routers.auth import run_system_health_checks
+    from mailer import send_email
+    from config import settings
+    from database import SessionLocal
+    
+    if not settings.ADMIN_EMAILS:
+        print("[AutoHealth] No ADMIN_EMAILS configured. Auto-alerting disabled.")
+        return
+        
+    admin_emails = [e.strip() for e in settings.ADMIN_EMAILS.split(",") if e.strip()]
+    
+    while True:
+        try:
+            await asyncio.sleep(600)  # Wait 10 minutes between checks
+            
+            print("[AutoHealth] Running background system health check...")
+            
+            db = SessionLocal()
+            try:
+                health_data = await run_system_health_checks(db=db)
+            finally:
+                db.close()
+                
+            if health_data["overall_status"] != "active":
+                failed_services = [s for s in health_data["services"] if s["status"] != "active"]
+                print(f"[AutoHealth] Detected {len(failed_services)} degraded/failed services. Sending alerts.")
+                
+                html_list = ""
+                for s in failed_services:
+                    details_html = "<ul>"
+                    for k, v in s.get("details", {}).items():
+                        details_html += f"<li><em>{k}</em>: {v}</li>"
+                    details_html += "</ul>"
+                    
+                    html_list += f"<li><strong>{s['name']}</strong> ({s['type']})<br/>Status: <b>{s['status'].upper()}</b><br/>Message: {s['message']}<br/>Details: {details_html}</li><br/>"
+
+                subject = f"⚠️ [Alert] {settings.APP_NAME} System Degraded"
+                body = f"""
+                <h2>System Health Alert</h2>
+                <p>The automated health check detected the following issues across your services:</p>
+                <ul>
+                    {html_list}
+                </ul>
+                <p>Please check the Admin Console for more details.</p>
+                """
+                
+                # Send to all admins
+                for email in admin_emails:
+                    await send_email(email, subject, body)
+                    
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"[AutoHealth] Worker loop exception: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Start the anti-sleep background task
+    # Start the background tasks
     keep_alive_task = asyncio.create_task(render_keep_alive_worker())
+    auto_health_task = asyncio.create_task(system_health_auto_worker())
     yield
     # Clean up on shutdown
     keep_alive_task.cancel()
+    auto_health_task.cancel()
     try:
         await keep_alive_task
+        await auto_health_task
     except asyncio.CancelledError:
         pass
 
