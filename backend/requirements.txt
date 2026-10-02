@@ -16,3 +16,4 @@ python-jose[cryptography]
 python-multipart
 pydantic[email]
 gunicorn
+boto3
