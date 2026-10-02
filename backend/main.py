@@ -87,23 +87,29 @@ async def activity_middleware(request: Request, call_next):
 
 from config import settings
 
+# Parse allowed origins from environment (comma-separated if multiple)
+env_origins = []
+if settings.ALLOWED_ORIGINS:
+    env_origins.extend([org.strip() for org in settings.ALLOWED_ORIGINS.split(",") if org.strip()])
+if settings.FRONTEND_URL and settings.FRONTEND_URL not in env_origins:
+    env_origins.append(settings.FRONTEND_URL)
+
 if settings.ENVIRONMENT == "production":
-    allowed_origins = [
-        "https://coin.aether70.me",
-        "https://www.coin.aether70.me"
-    ]
+    # In production, require strict origins from environment
+    allowed_origins = env_origins if env_origins else []
 else:
+    # In development, allow local development ports + env origins
     allowed_origins = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
         "http://127.0.0.1:3000"
-    ]
+    ] + env_origins
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=allowed_origins if allowed_origins else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

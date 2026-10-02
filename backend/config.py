@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     # External APIs
     STACK_EXCHANGE_API_KEY: str = ""
     GITHUB_TOKEN: str = ""
+
+    # CORS Settings
+    FRONTEND_URL: str = ""
+    ALLOWED_ORIGINS: str = ""
     
     # Security Protocol
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
