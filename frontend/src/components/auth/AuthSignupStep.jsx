@@ -89,6 +89,7 @@ export default function AuthSignupStep({ email, onEditEmail, onLoginSuccess, onE
               value={password}
               onChange={e => setPassword(e.target.value)}
               disabled={otpRequested || loading}
+              autoFocus
             />
           </div>
         </div>

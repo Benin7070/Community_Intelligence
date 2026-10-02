@@ -7,20 +7,21 @@ export default function AuthEmailStep({ onNext, onError }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !email.includes('@')) return;
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) return;
 
     setLoading(true);
     try {
       const res = await fetch(`${AUTH_API}/check-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: cleanEmail })
       });
       const data = await res.json();
       
       if (res.ok) {
         // data.registered indicates if the user exists
-        onNext(email, data.registered);
+        onNext(cleanEmail, data.registered);
       } else {
         onError(data.detail || 'Failed to check email');
       }
@@ -51,6 +52,7 @@ export default function AuthEmailStep({ onNext, onError }) {
               value={email}
               onChange={e => setEmail(e.target.value)}
               disabled={loading}
+              autoFocus
             />
           </div>
         </div>

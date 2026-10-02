@@ -77,6 +77,7 @@ export default function AuthPasswordStep({ email, onEditEmail, onLoginSuccess, o
               onChange={e => setPassword(e.target.value)}
               disabled={loading}
               required
+              autoFocus
             />
             <button 
               type="button" 

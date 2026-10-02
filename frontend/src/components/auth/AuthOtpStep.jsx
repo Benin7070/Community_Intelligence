@@ -4,6 +4,15 @@ import { AUTH_API } from '../../config';
 export default function AuthOtpStep({ email, onEditEmail, onLoginSuccess, onSwitchToPassword, onError }) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(30);
+
+  React.useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,13 +40,16 @@ export default function AuthOtpStep({ email, onEditEmail, onLoginSuccess, onSwit
   };
 
   const handleResend = async () => {
+    if (countdown > 0) return;
     try {
       const res = await fetch(`${AUTH_API}/request-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
-      if (!res.ok) {
+      if (res.ok) {
+        setCountdown(30);
+      } else {
         const data = await res.json();
         onError(data.detail || 'Failed to resend code');
       }
@@ -71,6 +83,7 @@ export default function AuthOtpStep({ email, onEditEmail, onLoginSuccess, onSwit
               onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
               disabled={loading}
               required 
+              autoFocus
             />
           </div>
         </div>
@@ -80,8 +93,13 @@ export default function AuthOtpStep({ email, onEditEmail, onLoginSuccess, onSwit
         </button>
 
         <div className="chatgpt-resend-row">
-          <span>Didn't receive code?</span>
-          <button type="button" className="chatgpt-link-action" onClick={handleResend} disabled={loading}>
+          <span>{countdown > 0 ? `Resend code in ${countdown}s` : "Didn't receive code?"}</span>
+          <button 
+            type="button" 
+            className={`chatgpt-link-action ${countdown > 0 ? 'disabled' : ''}`} 
+            onClick={handleResend} 
+            disabled={countdown > 0 || loading}
+          >
             Resend code
           </button>
         </div>

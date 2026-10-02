@@ -28,62 +28,86 @@ export default function AuthOverlay({ onLogin }) {
     <div className="auth-overlay active">
       <div className="chatgpt-auth-container">
         
-        <div className="chatgpt-brand-box">
-          <div className="brand-glyph" style={{ width: '40px', height: '40px' }}>
-            <span className="glyph-core">CI</span>
-            <div className="glyph-glow"></div>
+        {/* Header Brand Icon */}
+        <div className="chatgpt-brand-header">
+          <div className="chatgpt-brand-logo">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="4"></circle>
+              <line x1="12" y1="2" x2="12" y2="6"></line>
+              <line x1="12" y1="18" x2="12" y2="22"></line>
+              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+              <line x1="2" y1="12" x2="6" y2="12"></line>
+              <line x1="18" y1="12" x2="22" y2="12"></line>
+              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+              <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+            </svg>
           </div>
+          <span className="chatgpt-brand-name">Community Intel</span>
         </div>
 
-        {error && (
-          <div className="auth-alert-box" style={{ display: 'flex', marginBottom: '16px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '12px', borderRadius: '8px', alignItems: 'center', gap: '8px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span style={{ fontSize: '13px' }}>{error}</span>
-          </div>
-        )}
+        {/* Auth Glass Card */}
+        <div className="chatgpt-auth-card">
+          {error && (
+            <div className="chatgpt-alert-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
 
-        {step === 'email' && (
-          <AuthEmailStep 
-            onNext={handleEmailNext} 
-            onError={setError} 
-          />
-        )}
-        
-        {step === 'password' && (
-          <AuthPasswordStep 
-            email={email} 
-            onEditEmail={handleEditEmail} 
-            onLoginSuccess={onLogin} 
-            onSwitchToOtp={() => { setStep('otp'); setError(null); }} 
-            onError={setError} 
-          />
-        )}
-        
-        {step === 'otp' && (
-          <AuthOtpStep 
-            email={email} 
-            onEditEmail={handleEditEmail} 
-            onLoginSuccess={onLogin} 
-            onSwitchToPassword={() => { setStep('password'); setError(null); }} 
-            onError={setError} 
-          />
-        )}
-        
-        {step === 'signup' && (
-          <AuthSignupStep 
-            email={email} 
-            onEditEmail={handleEditEmail} 
-            onLoginSuccess={onLogin} 
-            onError={setError} 
-          />
-        )}
-        
-        <div className="chatgpt-trust-footer">
-          <span>Protected by reCAPTCHA</span>
-          <span>•</span>
-          <a href="#">Privacy</a>
-          <span>•</span>
-          <a href="#">Terms</a>
+          {step === 'email' && (
+            <AuthEmailStep 
+              onNext={handleEmailNext} 
+              onError={setError} 
+            />
+          )}
+          
+          {step === 'password' && (
+            <AuthPasswordStep 
+              email={email} 
+              onEditEmail={handleEditEmail} 
+              onLoginSuccess={onLogin} 
+              onSwitchToOtp={() => { setStep('otp'); setError(null); }} 
+              onError={setError} 
+            />
+          )}
+          
+          {step === 'otp' && (
+            <AuthOtpStep 
+              email={email} 
+              onEditEmail={handleEditEmail} 
+              onLoginSuccess={onLogin} 
+              onSwitchToPassword={() => { setStep('password'); setError(null); }} 
+              onError={setError} 
+            />
+          )}
+          
+          {step === 'signup' && (
+            <AuthSignupStep 
+              email={email} 
+              onEditEmail={handleEditEmail} 
+              onLoginSuccess={onLogin} 
+              onError={setError} 
+            />
+          )}
+
+          {/* Footer Trust Markers */}
+          <div className="chatgpt-auth-card-footer">
+            <div className="auth-security-pill">
+              <span className="green-dot"></span>
+              <span>Supabase Postgres &amp; IEEE Cryptographic Session</span>
+            </div>
+            <div className="chatgpt-legal-links">
+              <a href="#terms" onClick={(e) => e.preventDefault()}>Terms of use</a>
+              <span className="dot-divider">•</span>
+              <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy policy</a>
+            </div>
+          </div>
         </div>
 
       </div>
