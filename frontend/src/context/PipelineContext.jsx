@@ -21,6 +21,7 @@ export function PipelineProvider({ children }) {
 
   const timerIntervalRef = useRef(null);
   const startTimeRef = useRef(null);
+  const lastActiveRequestTimeRef = useRef(Date.now());
 
   // Stop timer helper
   const stopTimer = useCallback(() => {
@@ -29,6 +30,31 @@ export function PipelineProvider({ children }) {
       timerIntervalRef.current = null;
     }
   }, []);
+
+  // Smart Render Anti-Sleep Keep-Alive
+  // Keeps Render awake by pinging when idle >= 45s, but skips if any request is currently handling or recent.
+  useEffect(() => {
+    const keepAliveInterval = setInterval(async () => {
+      // 1. Skip completely if any query or pipeline is actively in flight
+      if (loading) return;
+
+      const idleDurationMs = Date.now() - lastActiveRequestTimeRef.current;
+      // 2. Only ping if idle for 45 seconds or more
+      if (idleDurationMs >= 45000) {
+        try {
+          const res = await fetch(`${API_BASE}/health/ping`);
+          if (res.ok) {
+            // Reset idle timer upon successful anti-sleep ping
+            lastActiveRequestTimeRef.current = Date.now();
+          }
+        } catch {
+          // Ignore network glitch to avoid noisy logs
+        }
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => clearInterval(keepAliveInterval);
+  }, [loading]);
 
   // Sync System completed event from WebSocket
   useEffect(() => {
@@ -70,6 +96,7 @@ export function PipelineProvider({ children }) {
     setChatMessages(prev => [...prev, newMessage]);
     setLoading(true);
     setError(null);
+    lastActiveRequestTimeRef.current = Date.now();
     wsState.resetStages();
 
     // Start live timer
@@ -132,6 +159,7 @@ export function PipelineProvider({ children }) {
         return m;
       }));
     } finally {
+      lastActiveRequestTimeRef.current = Date.now();
       setLoading(false);
     }
   }, [activeChatId, wsState, stopTimer]);
@@ -152,6 +180,8 @@ export function PipelineProvider({ children }) {
       }
       return m;
     }));
+
+    lastActiveRequestTimeRef.current = Date.now();
 
     try {
       const token = localStorage.getItem('auth_token');
@@ -183,6 +213,7 @@ export function PipelineProvider({ children }) {
 
   const submitFeedback = useCallback(async (feedbackType) => {
     if (!currentData) return;
+    lastActiveRequestTimeRef.current = Date.now();
 
     try {
       const token = localStorage.getItem('auth_token');

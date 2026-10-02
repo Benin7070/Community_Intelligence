@@ -33,6 +33,9 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            await websocket.receive_text()
+            data = await websocket.receive_text()
+            if data in ("ping", '{"type":"ping"}', '{"type": "ping"}'):
+                await websocket.send_text(json.dumps({"type": "pong"}))
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+

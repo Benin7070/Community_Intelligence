@@ -321,6 +321,25 @@ async def get_system_health(
         }
     })
 
+    # 4. Render Anti-Sleep Keep-Alive Engine
+    from activity import tracker
+    services.append({
+        "id": "render_keepalive",
+        "name": "Render Anti-Sleep Keep-Alive",
+        "type": "heartbeat",
+        "status": "active",
+        "healthy": True,
+        "latency_ms": 1,
+        "message": f"Active requests: {tracker.active_requests} | Idle: {round(tracker.idle_seconds)}s | Heartbeats: {tracker.total_pings}",
+        "details": {
+            "active_requests": tracker.active_requests,
+            "idle_seconds": round(tracker.idle_seconds, 1),
+            "total_pings": tracker.total_pings,
+            "keep_alive_threshold": "45s idle check",
+            "strategy": "Ping only when 0 requests active and idle >= 45s"
+        }
+    })
+
     all_healthy = all(s.get("healthy", False) for s in services)
     any_error = any(s.get("status") == "error" for s in services)
     overall_status = "active" if all_healthy else ("error" if any_error else "degraded")

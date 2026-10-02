@@ -38,6 +38,7 @@ export function usePipelineWS(wsUrl = WS_PIPELINE_URL) {
   const handleMessage = useCallback((event) => {
     try {
       const data = JSON.parse(event.data);
+      if (data?.type === 'pong') return; // Heartbeat response, keep connection active
       const { module, status, details } = data;
 
       if (!module) return;
@@ -121,8 +122,20 @@ export function usePipelineWS(wsUrl = WS_PIPELINE_URL) {
     isMountedRef.current = true;
     connect();
 
+    // Send keep-alive ping frame every 45s if connected to prevent cloud proxy disconnects
+    const wsPingInterval = setInterval(() => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        try {
+          wsRef.current.send('ping');
+        } catch {
+          // ignore
+        }
+      }
+    }, 45000);
+
     return () => {
       isMountedRef.current = false;
+      clearInterval(wsPingInterval);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
