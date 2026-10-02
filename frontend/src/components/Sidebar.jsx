@@ -1,6 +1,9 @@
 import React from 'react';
+import { usePipeline } from '../context/PipelineContext';
+import { MessageSquare, PlusCircle } from 'lucide-react';
 
 export default function Sidebar({ currentView, setCurrentView, navGroup, setNavGroup }) {
+  const { historyList, loadChat, activeChatId, startNewChat } = usePipeline();
   return (
     <aside className="app-sidebar" aria-label="Main Navigation">
       <div className="sidebar-brand">
@@ -29,6 +32,53 @@ export default function Sidebar({ currentView, setCurrentView, navGroup, setNavG
                 <small>Query & Pipeline</small>
               </div>
             </button>
+
+            {/* NEW CHAT BUTTON */}
+            <button
+              className="nav-btn"
+              onClick={() => {
+                setCurrentView('dashboard');
+                startNewChat();
+              }}
+              style={{ marginTop: '8px', background: 'rgba(56, 189, 248, 0.1)', borderColor: 'rgba(56, 189, 248, 0.3)', color: '#38bdf8' }}
+            >
+              <PlusCircle className="nav-icon" size={20} />
+              <div className="nav-label">
+                <span>New Chat</span>
+                <small>Start fresh session</small>
+              </div>
+            </button>
+
+            {/* CHAT HISTORY SECTION */}
+            {historyList && historyList.length > 0 && (
+              <div className="chat-history-section" style={{ marginTop: '16px', marginBottom: '16px' }}>
+                <div style={{ padding: '0 14px', fontSize: '11px', textTransform: 'uppercase', color: '#71717a', fontWeight: 600, letterSpacing: '0.5px', marginBottom: '8px' }}>
+                  Recent Chats
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {historyList.map(chat => (
+                    <button
+                      key={chat.id}
+                      className={`nav-btn ${activeChatId === chat.id && currentView === 'dashboard' ? 'active' : ''}`}
+                      onClick={() => {
+                        setCurrentView('dashboard');
+                        loadChat(chat.id);
+                      }}
+                      style={{ padding: '8px 14px', gap: '10px' }}
+                      title={chat.title}
+                    >
+                      <MessageSquare className="nav-icon" size={16} color={activeChatId === chat.id ? '#38bdf8' : '#71717a'} />
+                      <div className="nav-label" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                        <span style={{ fontSize: '12.5px', fontWeight: activeChatId === chat.id ? 600 : 400 }}>
+                          {chat.title}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '12px 0' }} />
 
             <button
               className={`nav-btn ${currentView === 'provenance' ? 'active' : ''}`}

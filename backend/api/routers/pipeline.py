@@ -17,7 +17,10 @@ from llm.synthesis import SynthesisEngine
 from api.websocket import manager
 from api.deps import get_current_user, get_current_admin
 from models.user import User
+from models.chat import Chat, ChatMessage
 from datetime import datetime
+from storage.r2 import upload_text_to_r2, get_presigned_url
+import json
 
 router = APIRouter()
 orchestrator = PipelineOrchestrator()
@@ -32,11 +35,30 @@ async def process_pipeline_event(event_data: dict):
 orchestrator.set_event_callback(process_pipeline_event)
 
 @router.post("/query", response_model=QueryResponse)
-async def run_query(request: QueryRequest, current_user: User = Depends(get_current_user)):
+async def run_query(
+    request: QueryRequest, 
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     try:
         chat_id = request.chat_id or f"chat_{uuid.uuid4().hex[:8]}"
         message_id = request.message_id or f"msg_{uuid.uuid4().hex[:8]}"
         competitor_model = request.competitor_model or "OpenAI (GPT-4o-mini)"
+
+        # 0. Ensure Chat exists and save User Message
+        chat = db.query(Chat).filter(Chat.id == chat_id).first()
+        if not chat:
+            chat = Chat(id=chat_id, user_email=current_user.email, title=request.query[:50] + "...")
+            db.add(chat)
+        
+        user_msg = ChatMessage(
+            id=message_id + "_u", 
+            chat_id=chat_id, 
+            role="user", 
+            preview_text=request.query
+        )
+        db.add(user_msg)
+        db.commit()
 
         # Step 1: Execute Layer 2 (Routing), Layer 3 (CI Core 3.1-3.7), and Layer 4 (Provenance Graph)
         ci_start = time.time()
@@ -87,6 +109,21 @@ async def run_query(request: QueryRequest, current_user: User = Depends(get_curr
                 "query": request.query
             }
         })
+        
+        # Save assistant compound message to R2 as JSON to prevent database bloat
+        assistant_json = final_response.model_dump_json()
+        r2_uri = upload_text_to_r2(assistant_json, prefix="chats/history")
+        
+        assistant_msg = ChatMessage(
+            id=message_id + "_a",
+            chat_id=chat_id,
+            role="assistant",
+            r2_url=r2_uri,
+            preview_text=final_response.headline_answer[:100],
+            competitor_model=competitor_model
+        )
+        db.add(assistant_msg)
+        db.commit()
         
         return final_response
     except Exception as e:
@@ -188,50 +225,18 @@ async def get_user_preferences(
     """Retrieve all user model preferences and follow-up chains from Supabase PostgreSQL (Admin Only)."""
     db_prefs = db.query(ModelPreference).order_by(ModelPreference.id.desc()).all()
     
-    # If table is fresh and has no records yet, seed the two demo records into the real database
-    if not db_prefs:
-        demo1 = ModelPreference(
-            feedback_id="fb_demo_01",
-            chat_id="chat_8f2a1b9c",
-            message_id="msg_001a",
-            user_email="developer@example.com",
-            query="React useEffect infinite re-render loop with object dependencies",
-            feedback_type="preference",
-            preferred_model="ci_pipeline",
-            competitor_model="OpenAI (GPT-4o-mini)",
-            competitor_response="To resolve infinite re-renders in useEffect, ensure you don't recreate objects inside the component render body without useMemo.",
-            ci_response="Community consensus (89% across 4 sources) notes that primitive decomposition or useMemo is required, with specific caveats for React 18 StrictMode double-mounting.",
-            competitor_latency_ms=780,
-            ci_latency_ms=1120,
-            is_locked=True,
-            comment="Community intel provided the crucial React 18 StrictMode caveat that ChatGPT missed.",
-            timestamp=int(time.time()) - 1800,
-            time_str=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-        )
-        demo2 = ModelPreference(
-            feedback_id="fb_demo_02",
-            chat_id="chat_8f2a1b9c",
-            message_id="msg_002b",
-            user_email="developer@example.com",
-            query="Follow-up: How do I handle this with custom hooks returning functions?",
-            feedback_type="preference",
-            preferred_model="ci_pipeline",
-            competitor_model="OpenAI (GPT-4o-mini)",
-            competitor_response="Wrap the returned functions in useCallback with proper dependencies before passing them to consumer components.",
-            ci_response="Proven lineage from GitHub discussion threads shows returning stable ref wrappers avoids triggering downstream subscriber effect re-runs.",
-            competitor_latency_ms=650,
-            ci_latency_ms=980,
-            is_locked=True,
-            comment="Follow-up query confirmed stable ref pattern from real production issues.",
-            timestamp=int(time.time()) - 900,
-            time_str=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-        )
-        db.add(demo1)
-        db.add(demo2)
-        db.commit()
-        db_prefs = [demo2, demo1]
+    # Removed demo seeding logic to prevent confusion with duplicate dummy records
 
-    return [p.to_dict() for p in db_prefs]
+    results = []
+    for p in db_prefs:
+        p_dict = p.to_dict()
+        if p_dict.get('competitor_response', '').startswith('r2://'):
+            p_dict['competitor_response'] = get_presigned_url(p_dict['competitor_response'])
+        if p_dict.get('ci_response', '').startswith('r2://'):
+            p_dict['ci_response'] = get_presigned_url(p_dict['ci_response'])
+        results.append(p_dict)
+        
+    return results
 
 @router.get("/feedback/stats")
 async def get_feedback_stats(db: Session = Depends(get_db)):

@@ -16,8 +16,11 @@ export function PipelineProvider({ children }) {
   // Active persistent Chat Session ID (tracks follow-up chains)
   const [activeChatId, setActiveChatId] = useState(() => `chat_${Math.random().toString(36).substring(2, 10)}`);
   
-  // Chat message stream: array of { id, chatId, messageId, query, competitorModel, timestamp, loading, data, error, votedPreference, isLocked }
+  // Chat message stream: array of { id, chatId, messageId, query, competitorModel, timestamp, loading, data, error, votedPreference, isLocked, r2_url }
   const [chatMessages, setChatMessages] = useState([]);
+  
+  // Historical chats for the sidebar
+  const [historyList, setHistoryList] = useState([]);
 
   const timerIntervalRef = useRef(null);
   const startTimeRef = useRef(null);
@@ -71,6 +74,75 @@ export function PipelineProvider({ children }) {
   useEffect(() => {
     return () => stopTimer();
   }, [stopTimer]);
+
+  const fetchChats = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API_BASE}/chats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setHistoryList(data);
+      }
+    } catch (err) {
+      console.error('[Pipeline] Failed to fetch chat history:', err);
+    }
+  }, []);
+
+  const loadChat = useCallback(async (chatId) => {
+    setActiveChatId(chatId);
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API_BASE}/chats/${chatId}/messages`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const messages = await res.json();
+        // Group user and assistant messages into a single ChatTurnItem structure
+        const turns = [];
+        let currentTurn = null;
+        
+        messages.forEach(m => {
+          if (m.role === 'user') {
+            if (currentTurn) turns.push(currentTurn);
+            currentTurn = {
+              id: m.id.replace('_u', ''),
+              chatId: chatId,
+              messageId: m.id.replace('_u', ''),
+              query: m.preview_text,
+              timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              loading: true, // We set to loading until R2 is fetched if there's an assistant response next
+              data: null,
+              r2_url: null,
+              votedPreference: null,
+              isLocked: false
+            };
+          } else if (m.role === 'assistant' && currentTurn) {
+            currentTurn.loading = false;
+            currentTurn.r2_url = m.r2_url; // Will trigger sliding window lazy load in UI
+            currentTurn.competitorModel = m.competitor_model;
+            currentTurn.isLocked = m.is_locked;
+            currentTurn.votedPreference = m.voted_preference;
+            // The actual heavy data will be loaded lazily in the component using the r2_url
+          }
+        });
+        if (currentTurn) turns.push(currentTurn);
+        
+        setChatMessages(turns);
+      }
+    } catch (err) {
+      console.error('[Pipeline] Failed to load chat messages:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch initial chat history on mount
+  useEffect(() => {
+    fetchChats();
+  }, [fetchChats]);
 
   const executePipeline = useCallback(async (query, competitorModel = "OpenAI (GPT-4o-mini)") => {
     if (!query || !query.trim()) return;
@@ -161,8 +233,10 @@ export function PipelineProvider({ children }) {
     } finally {
       lastActiveRequestTimeRef.current = Date.now();
       setLoading(false);
+      // Refresh chat history to update sidebar
+      fetchChats();
     }
-  }, [activeChatId, wsState, stopTimer]);
+  }, [activeChatId, wsState, stopTimer, fetchChats]);
 
   // Lock and submit model preference choice
   const lockPreference = useCallback(async (messageId, preferredModel, isLocked = true) => {
@@ -259,10 +333,13 @@ export function PipelineProvider({ children }) {
     feedbackRecorded,
     activeChatId,
     chatMessages,
+    historyList,
     executePipeline,
     submitFeedback,
     lockPreference,
-    startNewChat
+    startNewChat,
+    loadChat,
+    fetchChats
   };
 
   return (

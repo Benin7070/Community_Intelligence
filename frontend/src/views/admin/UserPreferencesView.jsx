@@ -1,6 +1,54 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { API_BASE } from '../../config';
 
+const OutputViewer = ({ chatId, messageId, dataKey, fallbackContent, defaultText }) => {
+  const [text, setText] = useState('Loading...');
+  
+  useEffect(() => {
+    if (chatId && messageId) {
+      const token = localStorage.getItem('auth_token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      
+      fetch(`${API_BASE}/chats/${chatId}/messages/${messageId}/payload`, { headers })
+        .then(r => {
+          if (!r.ok) throw new Error('Network response was not ok');
+          return r.json();
+        })
+        .then(json => {
+          if (json && json[dataKey]) {
+            setText(typeof json[dataKey] === 'string' ? json[dataKey] : JSON.stringify(json[dataKey], null, 2));
+          } else {
+            setText(fallbackContent || defaultText);
+          }
+        })
+        .catch(err => {
+          console.error("Failed to load payload:", err);
+          // Fallback to legacy content
+          handleLegacyContent(fallbackContent, defaultText, setText);
+        });
+    } else {
+      handleLegacyContent(fallbackContent, defaultText, setText);
+    }
+  }, [chatId, messageId, dataKey, fallbackContent, defaultText]);
+  
+  return <>{text}</>;
+};
+
+const handleLegacyContent = (content, defaultText, setText) => {
+  if (!content) {
+    setText(defaultText);
+    return;
+  }
+  if (content.startsWith('http') && content.includes('X-Amz-Signature')) {
+    fetch(content)
+      .then(r => r.text())
+      .then(setText)
+      .catch(() => setText('Failed to load from R2 storage.'));
+  } else {
+    setText(content);
+  }
+};
+
 export default function UserPreferencesView() {
   const [preferences, setPreferences] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -646,7 +694,13 @@ export default function UserPreferencesView() {
                   </span>
                 </div>
                 <div style={{ fontSize: '12.5px', color: '#e4e4e7', lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '280px', overflowY: 'auto' }}>
-                  {selectedItem.competitor_response || 'Standard ungrounded baseline output provided to the user.'}
+                  <OutputViewer 
+                    chatId={selectedItem.chat_id}
+                    messageId={selectedItem.message_id}
+                    dataKey="chatgpt_response"
+                    fallbackContent={selectedItem.competitor_response}
+                    defaultText="Standard ungrounded baseline output provided to the user." 
+                  />
                 </div>
               </div>
 
@@ -671,7 +725,13 @@ export default function UserPreferencesView() {
                   </span>
                 </div>
                 <div style={{ fontSize: '12.5px', color: '#e4e4e7', lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '280px', overflowY: 'auto' }}>
-                  {selectedItem.ci_response || 'Synthesized multi-source community consensus response with empirical evidence grounding.'}
+                  <OutputViewer 
+                    chatId={selectedItem.chat_id}
+                    messageId={selectedItem.message_id}
+                    dataKey="headline_answer"
+                    fallbackContent={selectedItem.ci_response} 
+                    defaultText="Synthesized multi-source community consensus response with empirical evidence grounding." 
+                  />
                 </div>
               </div>
 

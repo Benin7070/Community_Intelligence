@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import AccountSettingsModal from './auth/AccountSettingsModal';
 
 export default function Header({ user, onLogout, currentView }) {
@@ -80,11 +81,14 @@ export default function Header({ user, onLogout, currentView }) {
         </div>
       </div>
 
-      {showSettings && (
-        <AccountSettingsModal 
-          user={user} 
-          onClose={() => setShowSettings(false)} 
-        />
+      {showSettings && ReactDOM.createPortal(
+        <div className="account-settings-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowSettings(false); }}>
+          <AccountSettingsModal 
+            user={user} 
+            onClose={() => setShowSettings(false)} 
+          />
+        </div>,
+        document.body
       )}
     </header>
   );

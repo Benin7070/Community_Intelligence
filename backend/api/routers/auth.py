@@ -241,104 +241,192 @@ def verify_otp(request: OTPVerify, db: Session = Depends(get_db)):
 
 @router.get("/system-health")
 async def get_system_health(
+    service: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin)
 ):
-    """Run diagnostics and check status of connected services (Supabase, SMTP2GO, WS Gateway)."""
+    """Run diagnostics and check status of connected services (Supabase, SMTP2GO, WS Gateway, R2, LLM)."""
     import time
     from sqlalchemy import text
     from database import engine
     from mailer import check_smtp_health
     from api.routers.websocket import manager
+    import boto3
+    from config import settings
+    import os
     
     timestamp = datetime.utcnow().isoformat() + "Z"
     services = []
     
     # 1. Supabase PostgreSQL Database Check
-    db_start = time.time()
-    try:
-        ping_val = db.execute(text("SELECT 1")).scalar()
-        db_latency = round((time.time() - db_start) * 1000)
-        
-        host = getattr(engine.url, 'host', 'localhost')
-        port = getattr(engine.url, 'port', 5432)
-        driver = getattr(engine.url, 'drivername', 'postgresql')
-        is_supabase = "supabase" in (host or "").lower() or "pooler" in (host or "").lower()
-        
-        services.append({
-            "id": "supabase_db",
-            "name": "Supabase PostgreSQL Database",
-            "type": "database",
-            "status": "active",
-            "healthy": True,
-            "latency_ms": db_latency,
-            "message": f"PostgreSQL live query succeeded (SELECT 1 -> {ping_val})",
-            "details": {
-                "host": host,
-                "port": port,
-                "engine": driver,
-                "is_supabase": is_supabase,
-                "pool_status": "Connected (Port 6543 / 5432)"
-            }
-        })
-    except Exception as e:
-        db_latency = round((time.time() - db_start) * 1000)
-        services.append({
-            "id": "supabase_db",
-            "name": "Supabase PostgreSQL Database",
-            "type": "database",
-            "status": "error",
-            "healthy": False,
-            "latency_ms": db_latency,
-            "message": f"Database query failed: {str(e)}",
-            "details": {
-                "host": getattr(engine.url, 'host', 'unknown'),
-                "port": getattr(engine.url, 'port', 5432),
-                "engine": getattr(engine.url, 'drivername', 'postgresql')
-            }
-        })
+    if not service or service == "supabase_db":
+        db_start = time.time()
+        try:
+            ping_val = db.execute(text("SELECT 1")).scalar()
+            db_latency = round((time.time() - db_start) * 1000)
+            
+            host = getattr(engine.url, 'host', 'localhost')
+            port = getattr(engine.url, 'port', 5432)
+            driver = getattr(engine.url, 'drivername', 'postgresql')
+            is_supabase = "supabase" in (host or "").lower() or "pooler" in (host or "").lower()
+            
+            services.append({
+                "id": "supabase_db",
+                "name": "Supabase PostgreSQL Database",
+                "type": "database",
+                "status": "active",
+                "healthy": True,
+                "latency_ms": db_latency,
+                "message": f"PostgreSQL live query succeeded (SELECT 1 -> {ping_val})",
+                "details": {
+                    "host": host,
+                    "port": port,
+                    "engine": driver,
+                    "is_supabase": is_supabase,
+                    "pool_status": "Connected (Port 6543 / 5432)"
+                }
+            })
+        except Exception as e:
+            db_latency = round((time.time() - db_start) * 1000)
+            services.append({
+                "id": "supabase_db",
+                "name": "Supabase PostgreSQL Database",
+                "type": "database",
+                "status": "error",
+                "healthy": False,
+                "latency_ms": db_latency,
+                "message": f"Database query failed: {str(e)}",
+                "details": {
+                    "host": getattr(engine.url, 'host', 'unknown'),
+                    "port": getattr(engine.url, 'port', 5432),
+                    "engine": getattr(engine.url, 'drivername', 'postgresql')
+                }
+            })
 
     # 2. SMTP2GO Email Delivery Check
-    smtp_health = await check_smtp_health()
-    services.append({
-        "id": "smtp2go",
-        **smtp_health
-    })
+    if not service or service == "smtp2go":
+        smtp_health = await check_smtp_health()
+        services.append({
+            "id": "smtp2go",
+            **smtp_health
+        })
 
     # 3. Community Intelligence WebSocket Gateway Check
-    services.append({
-        "id": "websocket_core",
-        "name": "WebSocket Telemetry Gateway",
-        "type": "websocket",
-        "status": "active",
-        "healthy": True,
-        "latency_ms": 1,
-        "message": f"Telemetry manager online with {len(manager.active_connections)} active client(s)",
-        "details": {
-            "endpoint": "/ws/pipeline",
-            "active_clients": len(manager.active_connections),
-            "orchestrator_modules": "3.1 to 3.7 Core Telemetry Ready"
-        }
-    })
+    if not service or service == "websocket_core":
+        services.append({
+            "id": "websocket_core",
+            "name": "WebSocket Telemetry Gateway",
+            "type": "websocket",
+            "status": "active",
+            "healthy": True,
+            "latency_ms": 1,
+            "message": f"Telemetry manager online with {len(manager.active_connections)} active client(s)",
+            "details": {
+                "endpoint": "/ws/pipeline",
+                "active_clients": len(manager.active_connections),
+                "orchestrator_modules": "3.1 to 3.7 Core Telemetry Ready"
+            }
+        })
 
     # 4. Render Anti-Sleep Keep-Alive Engine
-    from activity import tracker
-    services.append({
-        "id": "render_keepalive",
-        "name": "Render Anti-Sleep Keep-Alive",
-        "type": "heartbeat",
-        "status": "active",
-        "healthy": True,
-        "latency_ms": 1,
-        "message": f"Active requests: {tracker.active_requests} | Idle: {round(tracker.idle_seconds)}s | Heartbeats: {tracker.total_pings}",
-        "details": {
-            "active_requests": tracker.active_requests,
-            "idle_seconds": round(tracker.idle_seconds, 1),
-            "total_pings": tracker.total_pings,
-            "keep_alive_threshold": "45s idle check",
-            "strategy": "Ping only when 0 requests active and idle >= 45s"
-        }
-    })
+    if not service or service == "render_keepalive":
+        from activity import tracker
+        services.append({
+            "id": "render_keepalive",
+            "name": "Render Anti-Sleep Keep-Alive",
+            "type": "heartbeat",
+            "status": "active",
+            "healthy": True,
+            "latency_ms": 1,
+            "message": f"Active requests: {tracker.active_requests} | Idle: {round(tracker.idle_seconds)}s | Heartbeats: {tracker.total_pings}",
+            "details": {
+                "active_requests": tracker.active_requests,
+                "idle_seconds": round(tracker.idle_seconds, 1),
+                "total_pings": tracker.total_pings,
+                "keep_alive_threshold": "45s idle check",
+                "strategy": "Ping only when 0 requests active and idle >= 45s"
+            }
+        })
+        
+    # 5. Cloudflare R2 Check
+    if not service or service == "cloudflare_r2":
+        r2_start = time.time()
+        try:
+            s3 = boto3.client(
+                's3',
+                endpoint_url=settings.R2_ENDPOINT_URL,
+                aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+                region_name='us-east-1'
+            )
+            s3.head_bucket(Bucket=settings.R2_BUCKET_NAME)
+            r2_latency = round((time.time() - r2_start) * 1000)
+            services.append({
+                "id": "cloudflare_r2",
+                "name": "Cloudflare R2 Storage",
+                "type": "storage",
+                "status": "active",
+                "healthy": True,
+                "latency_ms": r2_latency,
+                "message": f"Successfully connected to R2 bucket '{settings.R2_BUCKET_NAME}'",
+                "details": {
+                    "endpoint": settings.R2_ENDPOINT_URL or "N/A",
+                    "bucket": settings.R2_BUCKET_NAME,
+                    "access_key": "Configured" if settings.R2_ACCESS_KEY_ID else "Missing"
+                }
+            })
+        except Exception as e:
+            r2_latency = round((time.time() - r2_start) * 1000)
+            services.append({
+                "id": "cloudflare_r2",
+                "name": "Cloudflare R2 Storage",
+                "type": "storage",
+                "status": "error",
+                "healthy": False,
+                "latency_ms": r2_latency,
+                "message": f"R2 Connection failed: {str(e)}",
+                "details": {
+                    "endpoint": settings.R2_ENDPOINT_URL or "N/A",
+                    "bucket": settings.R2_BUCKET_NAME
+                }
+            })
+            
+    # 6. LLM API Keys Check
+    if not service or service == "llm_api":
+        llm_start = time.time()
+        try:
+            configured = []
+            if os.getenv("OPENAI_API_KEY", settings.OPENAI_API_KEY): configured.append("OpenAI")
+            if os.getenv("ANTHROPIC_API_KEY", settings.ANTHROPIC_API_KEY): configured.append("Anthropic")
+            if os.getenv("GEMINI_API_KEY", settings.GEMINI_API_KEY): configured.append("Gemini")
+            
+            llm_latency = round((time.time() - llm_start) * 1000)
+            is_healthy = len(configured) > 0
+            services.append({
+                "id": "llm_api",
+                "name": "LLM API Providers",
+                "type": "ai",
+                "status": "active" if is_healthy else "degraded",
+                "healthy": True, # Still healthy because we fallback to G4F
+                "latency_ms": llm_latency,
+                "message": f"{len(configured)} official provider(s) configured. G4F fallback active." if not is_healthy else f"{len(configured)} official provider(s) configured.",
+                "details": {
+                    "configured_keys": ", ".join(configured) if configured else "None (Using G4F Web Models)",
+                    "default": settings.DEFAULT_LLM_PROVIDER
+                }
+            })
+        except Exception as e:
+            llm_latency = round((time.time() - llm_start) * 1000)
+            services.append({
+                "id": "llm_api",
+                "name": "LLM API Providers",
+                "type": "ai",
+                "status": "error",
+                "healthy": False,
+                "latency_ms": llm_latency,
+                "message": f"LLM check failed: {str(e)}",
+                "details": {}
+            })
 
     all_healthy = all(s.get("healthy", False) for s in services)
     any_error = any(s.get("status") == "error" for s in services)

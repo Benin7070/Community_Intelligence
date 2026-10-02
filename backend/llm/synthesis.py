@@ -12,6 +12,72 @@ class SynthesisEngine:
     def __init__(self):
         self.llm = LLMProvider()
         
+    async def _generate_with_selected_model(self, prompt: str, system_prompt: str, selected_model: str, is_baseline: bool = False) -> str:
+        import os
+        from config import settings
+        
+        # 1. Official APIs
+        if "OpenAI" in selected_model and os.getenv("OPENAI_API_KEY", settings.OPENAI_API_KEY):
+            try:
+                from openai import AsyncOpenAI
+                client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY", settings.OPENAI_API_KEY))
+                resp = await client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
+                )
+                return resp.choices[0].message.content
+            except Exception as e:
+                print(f"[Synthesis] Official OpenAI failed: {e}")
+                
+        elif "Anthropic" in selected_model and os.getenv("ANTHROPIC_API_KEY", settings.ANTHROPIC_API_KEY):
+            try:
+                from anthropic import AsyncAnthropic
+                client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", settings.ANTHROPIC_API_KEY))
+                resp = await client.messages.create(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=1024,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                return resp.content[0].text
+            except Exception as e:
+                print(f"[Synthesis] Official Anthropic failed: {e}")
+                
+        elif "Gemini" in selected_model and os.getenv("GEMINI_API_KEY", settings.GEMINI_API_KEY):
+            try:
+                import google.generativeai as genai
+                import asyncio
+                genai.configure(api_key=os.getenv("GEMINI_API_KEY", settings.GEMINI_API_KEY))
+                model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
+                resp = await asyncio.to_thread(model.generate_content, prompt)
+                return resp.text
+            except Exception as e:
+                print(f"[Synthesis] Official Gemini failed: {e}")
+
+        # 2. Fallback to G4F
+        g4f_model = "gpt-4o"
+        if "Claude" in selected_model or "Anthropic" in selected_model:
+            g4f_model = "claude-3-sonnet"
+        elif "Gemini" in selected_model:
+            g4f_model = "gemini-pro"
+            
+        try:
+            from g4f.client import AsyncClient
+            g4f_client = AsyncClient()
+            response = await g4f_client.chat.completions.create(
+                model=g4f_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                web_search=is_baseline
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"[Synthesis] g4f {g4f_model} failed: {e}")
+            
+        return None
+
     async def synthesize(
         self, 
         query: str, 
@@ -45,7 +111,8 @@ class SynthesisEngine:
         
         system_prompt = "You are an expert software intelligence synthesizer. Answer strictly based on the provided community evidence. Cite specific platforms and evidence."
         
-        llm_response = await self.llm.generate_completion(prompt, system_prompt)
+        # Use the selected model for the CI synthesis as well!
+        llm_response = await self._generate_with_selected_model(prompt, system_prompt, competitor_model, is_baseline=False)
         
         # If LLM returned text, use it; otherwise, generate high-fidelity extractive synthesis from real items
         if llm_response:
@@ -90,7 +157,9 @@ class SynthesisEngine:
             f"You are {competitor_model}, a leading conversational AI assistant. Answer the technical programming query "
             f"directly with general programming principles and standard documentation advice."
         )
-        chatgpt_baseline = await self.llm.generate_completion(chatgpt_prompt, chatgpt_system)
+        
+        chatgpt_baseline = await self._generate_with_selected_model(chatgpt_prompt, chatgpt_system, competitor_model, is_baseline=True)
+            
         competitor_latency_ms = round((time.time() - comp_start) * 1000)
 
         if not chatgpt_baseline:

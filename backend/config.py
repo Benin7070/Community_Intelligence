@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     SMTP_FROM_NAME: str = "Community Intelligence Platform"
     SMTP2GO_API_KEY: str = ""
     SMTP_BASE_URL: str = "https://api.smtp2go.com/v3"
+    
+    # Cloudflare R2
+    R2_ENDPOINT_URL: str = ""
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_BUCKET_NAME: str = "community-intel-chats"
 
     @field_validator("PORT", mode="before")
     def validate_port(cls, v):

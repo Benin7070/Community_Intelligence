@@ -7,11 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routers import (
     auth_router,
     pipeline_router as api_router,
-    websocket_router as ws_router
+    websocket_router as ws_router,
+    chat_router
 )
 from database import engine, Base
 from models.user import User
 from models.preference import ModelPreference
+from models.chat import Chat, ChatMessage
 from activity import tracker
 
 # Initialize database tables with resilient fallback
@@ -135,6 +137,7 @@ def ping():
 # Include routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(chat_router, prefix="/api/v1", tags=["chat"])
 app.include_router(ws_router) # WebSockets at root path for now
 
 @app.get("/")

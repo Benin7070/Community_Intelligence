@@ -1,16 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Maximize2, X, Loader2 } from 'lucide-react';
 
 export default function ChatTurnItem({ message, onSelectPreference, onLockPreference, currentUser }) {
+  const [expandedContent, setExpandedContent] = useState(null);
   const { id, chatId, messageId, query, competitorModel, timestamp, loading, data, error, votedPreference, isLocked } = message;
 
-  const primaryCluster = (data?.consensus_clusters && data.consensus_clusters[0]) || null;
+  const [localData, setLocalData] = useState(data);
+  const [isFetchingR2, setIsFetchingR2] = useState(false);
+
+  // Lazy load R2 JSON for historical chats
+  useEffect(() => {
+    if (!localData && message.r2_url) {
+      setIsFetchingR2(true);
+      const token = localStorage.getItem('auth_token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      
+      // If it's a backend relative route, prefix with API_BASE, else use as is
+      let fetchUrl = message.r2_url;
+      if (fetchUrl.startsWith('/api')) {
+        // Assume running on same origin or proxy
+        // Since we don't have API_BASE imported here, we'll try to get it from window or relative
+        fetchUrl = `http://localhost:8000${fetchUrl}`; // Fast fix for local development
+      }
+      
+      fetch(fetchUrl, { headers })
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
+        .then(json => {
+          setLocalData(json);
+          setIsFetchingR2(false);
+        })
+        .catch(err => {
+          console.error("Failed to fetch R2 payload:", err);
+          setIsFetchingR2(false);
+        });
+    } else if (data) {
+      setLocalData(data); // Sync if pipeline provides data live
+    }
+  }, [data, message.r2_url]);
+
+  const primaryCluster = (localData?.consensus_clusters && localData.consensus_clusters[0]) || null;
   const confidence = primaryCluster ? primaryCluster.confidence_score : 0.88;
   const status = primaryCluster ? primaryCluster.status : 'supported';
   const confidencePercent = (confidence * 100).toFixed(0);
 
-  const compModel = data?.competitor_model || competitorModel || 'OpenAI (GPT-4o-mini)';
-  const compLatency = data?.competitor_latency_ms || 780;
-  const ciLatency = data?.ci_latency_ms || 1120;
+  const compModel = localData?.competitor_model || competitorModel || 'OpenAI (GPT-4o-mini)';
+  const compLatency = localData?.competitor_latency_ms || 780;
+  const ciLatency = localData?.ci_latency_ms || 1120;
 
   const isCiVoted = votedPreference === 'ci_pipeline';
   const isCompetitorVoted = votedPreference === 'competitor' || votedPreference === 'chatgpt';
@@ -141,8 +181,15 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
         </div>
       )}
 
+      {/* 2.5 R2 Loading State (Sliding Window Fetch) */}
+      {isFetchingR2 && (
+        <div style={{ padding: '20px', display: 'flex', justifyContent: 'center', color: '#a1a1aa' }}>
+          <Loader2 className="spinner" size={24} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      )}
+
       {/* 4. Side-by-Side Comparative Responses */}
-      {!loading && !error && data && (
+      {!loading && !error && localData && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
           <div
@@ -221,12 +268,21 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
                   <span className="badge-tag" style={{ background: 'rgba(255,255,255,0.06)', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.1)', fontSize: '10px' }}>
                     Baseline
                   </span>
+                  <button 
+                    onClick={() => setExpandedContent({ title: compModel, markdown: localData.chatgpt_response || 'Standard ungrounded LLM response generated for technical query.' })}
+                    style={{ background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', padding: '4px' }}
+                    title="Read full response"
+                  >
+                    <Maximize2 size={16} />
+                  </button>
                 </div>
               </div>
 
               {/* Content Body */}
-              <div style={{ fontSize: '13.5px', color: '#e4e4e7', lineHeight: 1.6, whiteSpace: 'pre-wrap', flex: 1 }}>
-                {data.chatgpt_response || 'Standard ungrounded LLM response generated for technical query.'}
+              <div className="markdown-body" style={{ fontSize: '13.5px', color: '#e4e4e7', lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 8, WebkitBoxOrient: 'vertical', flex: 1 }}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {localData.chatgpt_response || 'Standard ungrounded LLM response generated for technical query.'}
+                </ReactMarkdown>
               </div>
 
               {/* Subtle footer */}
@@ -303,6 +359,13 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
                   <span className="confidence-badge high" style={{ fontSize: '11px', padding: '2px 8px' }}>
                     {confidencePercent}% ({status.toUpperCase()})
                   </span>
+                  <button 
+                    onClick={() => setExpandedContent({ title: 'Community Intelligence Pipeline', markdown: localData.ci_response || 'Synthesized multi-source community consensus response with empirical evidence grounding.' })}
+                    style={{ background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', padding: '4px' }}
+                    title="Read full response"
+                  >
+                    <Maximize2 size={16} />
+                  </button>
                 </div>
               </div>
 
@@ -318,7 +381,7 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
                   lineHeight: 1.5
                 }}
               >
-                <strong>Community Consensus:</strong> {data.headline_answer}
+                <strong>Community Consensus:</strong> {localData.headline_answer}
               </div>
 
               {/* Supported Claims List */}
@@ -346,7 +409,7 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
               </div>
 
               {/* Platform Caveats */}
-              {data.caveats && data.caveats.length > 0 && (
+              {localData.caveats && localData.caveats.length > 0 && (
                 <div
                   style={{
                     background: 'rgba(251, 191, 36, 0.06)',
@@ -359,7 +422,7 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
                     Platform Caveats & Version Warnings:
                   </strong>
                   <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: '#e4e4e7', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {data.caveats.slice(0, 2).map((cav, idx) => (
+                    {localData.caveats.slice(0, 2).map((cav, idx) => (
                       <li key={idx}>{cav}</li>
                     ))}
                   </ul>
@@ -367,9 +430,9 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
               )}
 
               {/* Bayesian Calibration */}
-              {data.confidence_explanation && (
+              {localData.confidence_explanation && (
                 <p style={{ margin: 0, fontSize: '11.5px', color: '#71717a', lineHeight: 1.4 }}>
-                  {data.confidence_explanation}
+                  {localData.confidence_explanation}
                 </p>
               )}
             </div>
@@ -530,6 +593,57 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* Expanded Markdown Modal */}
+      {expandedContent && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px'
+          }}
+          onClick={() => setExpandedContent(null)}
+        >
+          <div
+            className="glass-card"
+            style={{
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              background: '#0e0e11',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', color: '#ffffff', fontWeight: 600 }}>
+                {expandedContent.title}
+              </h3>
+              <button
+                onClick={() => setExpandedContent(null)}
+                style={{ background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="markdown-body" style={{ padding: '24px', overflowY: 'auto', fontSize: '14.5px', color: '#e4e4e7', lineHeight: 1.7 }}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {expandedContent.markdown}
+              </ReactMarkdown>
+            </div>
+          </div>
         </div>
       )}
 

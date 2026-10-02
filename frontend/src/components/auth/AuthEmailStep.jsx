@@ -20,8 +20,8 @@ export default function AuthEmailStep({ onNext, onError }) {
       const data = await res.json();
       
       if (res.ok) {
-        // data.registered indicates if the user exists
-        onNext(cleanEmail, data.registered);
+        // data.exists indicates if the user exists
+        onNext(cleanEmail, data.exists);
       } else {
         onError(data.detail || 'Failed to check email');
       }
