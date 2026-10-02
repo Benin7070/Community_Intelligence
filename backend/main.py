@@ -85,10 +85,25 @@ async def activity_middleware(request: Request, call_next):
     finally:
         tracker.request_end(is_ping=is_ping)
 
+from config import settings
+
+if settings.ENVIRONMENT == "production":
+    allowed_origins = [
+        "https://coin.aether70.me",
+        "https://www.coin.aether70.me"
+    ]
+else:
+    allowed_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
