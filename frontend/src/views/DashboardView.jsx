@@ -8,6 +8,7 @@ import { animatePanelEntrance } from '../utils/motion';
 export default function DashboardView() {
   const [query, setQuery] = useState('');
   const [competitorModel, setCompetitorModel] = useState('OpenAI (GPT-4o-mini)');
+  const [siteSettings, setSiteSettings] = useState(null);
   const panelRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -25,6 +26,20 @@ export default function DashboardView() {
     if (panelRef.current) {
       animatePanelEntrance(panelRef.current);
     }
+    
+    // Fetch global site settings
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/v1/auth/settings');
+        if (res.ok) {
+          const data = await res.json();
+          setSiteSettings(data);
+        }
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      }
+    };
+    fetchSettings();
   }, []);
 
   // Auto-scroll to bottom when new messages arrive
@@ -55,7 +70,29 @@ export default function DashboardView() {
         paddingBottom: '20px'
       }}
     >
-      {/* Top Console Title & Stats Bar */}
+      
+      {/* Maintenance & Suspension Blocks */}
+      {(user?.is_suspended === 1 || (siteSettings?.maintenance_mode === 1 && user?.role !== 'admin')) ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-card" style={{ maxWidth: '500px', textAlign: 'center', padding: '40px 30px', borderTop: '4px solid #ef4444' }}>
+            <div style={{ display: 'inline-flex', padding: '16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', color: '#ef4444', marginBottom: '20px' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>
+              {user?.is_suspended === 1 ? 'Account Suspended' : 'Thanks for your interest!'}
+            </h2>
+            <p style={{ color: '#a1a1aa', lineHeight: '1.6', fontSize: '15px' }}>
+              {user?.is_suspended === 1 
+                ? 'Your account has been temporarily suspended by an administrator. You currently do not have access to the platform services.'
+                : (siteSettings?.maintenance_message || 'This platform is temporarily closed for maintenance. We are currently undergoing scheduled upgrades.')}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Top Console Title & Stats Bar */}
       <div
         className="glass-card comparative-header-card"
         style={{
@@ -207,6 +244,8 @@ export default function DashboardView() {
           onNewChat={startNewChat}
         />
       </div>
+        </>
+      )}
     </section>
   );
 }

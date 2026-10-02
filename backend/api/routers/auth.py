@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models.user import User, RoleEnum
+from models.user import User, RoleEnum, SiteSettings
 from security import (
     create_access_token, 
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -26,8 +26,11 @@ from schemas.auth import (
     UserResponse,
     UserCreateRequest,
     RoleUpdateRequest,
+    UserSuspendRequest,
     PasswordResetRequest,
-    PasswordResetWithOtpRequest
+    PasswordResetWithOtpRequest,
+    SiteSettingsResponse,
+    SiteSettingsUpdateRequest
 )
 
 router = APIRouter()
@@ -91,7 +94,9 @@ def login_password(request: PasswordLoginRequest, db: Session = Depends(get_db))
         "user": {
             "id": user.id,
             "email": user.email,
-            "role": user.role.value
+            "role": user.role.value,
+            "has_password": bool(user.hashed_password),
+            "is_suspended": 1 if user.is_suspended else 0
         }
     }
 
@@ -172,7 +177,9 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         "user": {
             "id": user.id,
             "email": user.email,
-            "role": user.role.value
+            "role": user.role.value,
+            "has_password": bool(user.hashed_password),
+            "is_suspended": 1 if user.is_suspended else 0
         }
     }
 
@@ -231,7 +238,9 @@ def verify_otp(request: OTPVerify, db: Session = Depends(get_db)):
         "user": {
             "id": user.id,
             "email": user.email,
-            "role": user.role.value
+            "role": user.role.value,
+            "has_password": bool(user.hashed_password),
+            "is_suspended": 1 if user.is_suspended else 0
         }
     }
 
@@ -596,6 +605,32 @@ def reset_user_password(
     db.commit()
     return {"message": f"Password updated for {user.email}"}
 
+@router.put("/users/{user_id}/suspend", response_model=UserResponse)
+def suspend_user(
+    user_id: int,
+    request: UserSuspendRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Suspend or unsuspend a user (Admin Only)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot suspend yourself")
+        
+    user.is_suspended = bool(request.is_suspended)
+    db.commit()
+    db.refresh(user)
+    return {
+        "id": user.id,
+        "email": user.email,
+        "role": user.role,
+        "has_password": bool(user.hashed_password),
+        "is_suspended": 1 if user.is_suspended else 0
+    }
+
 @router.get("/me", response_model=UserResponse)
 def read_users_me(current_user: User = Depends(get_current_user)):
     """Retrieve current authenticated user profile."""
@@ -603,7 +638,53 @@ def read_users_me(current_user: User = Depends(get_current_user)):
         "id": current_user.id,
         "email": current_user.email,
         "role": current_user.role,
-        "has_password": bool(current_user.hashed_password)
+        "has_password": bool(current_user.hashed_password),
+        "is_suspended": 1 if current_user.is_suspended else 0
+    }
+
+# -----------------------------------------------------------------------------
+# Site Settings Endpoints
+# -----------------------------------------------------------------------------
+
+@router.get("/settings", response_model=SiteSettingsResponse)
+def get_site_settings(db: Session = Depends(get_db)):
+    """Get global site settings (Public)."""
+    settings = db.query(SiteSettings).first()
+    if not settings:
+        settings = SiteSettings(id=1, maintenance_mode=False, maintenance_message="Site is under maintenance.")
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    
+    # Return dictionary to match response_model exactly
+    return {
+        "maintenance_mode": 1 if settings.maintenance_mode else 0,
+        "maintenance_message": settings.maintenance_message,
+        "email_alerts_enabled": 1 if settings.email_alerts_enabled else 0
+    }
+
+@router.put("/settings", response_model=SiteSettingsResponse)
+def update_site_settings(
+    request: SiteSettingsUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Update global site settings (Admin Only)."""
+    settings = db.query(SiteSettings).first()
+    if not settings:
+        settings = SiteSettings(id=1)
+        db.add(settings)
+    
+    settings.maintenance_mode = bool(request.maintenance_mode)
+    settings.maintenance_message = request.maintenance_message
+    settings.email_alerts_enabled = bool(request.email_alerts_enabled)
+    db.commit()
+    db.refresh(settings)
+    
+    return {
+        "maintenance_mode": 1 if settings.maintenance_mode else 0,
+        "maintenance_message": settings.maintenance_message,
+        "email_alerts_enabled": 1 if settings.email_alerts_enabled else 0
     }
 
 @router.post("/password-reset/request-otp")

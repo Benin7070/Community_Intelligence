@@ -69,6 +69,7 @@ async def system_health_auto_worker():
     from mailer import send_email
     from config import settings
     from database import SessionLocal
+    from models.user import SiteSettings
     
     if not settings.ADMIN_EMAILS:
         print("[AutoHealth] No ADMIN_EMAILS configured. Auto-alerting disabled.")
@@ -85,10 +86,12 @@ async def system_health_auto_worker():
             db = SessionLocal()
             try:
                 health_data = await run_system_health_checks(db=db)
+                settings_rec = db.query(SiteSettings).first()
+                email_alerts_enabled = settings_rec.email_alerts_enabled if settings_rec else True
             finally:
                 db.close()
                 
-            if health_data["overall_status"] != "active":
+            if health_data["overall_status"] != "active" and email_alerts_enabled:
                 failed_services = [s for s in health_data["services"] if s["status"] != "active"]
                 print(f"[AutoHealth] Detected {len(failed_services)} degraded/failed services. Sending alerts.")
                 

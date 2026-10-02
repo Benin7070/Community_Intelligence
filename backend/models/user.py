@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Enum, Boolean
 import enum
 from database import Base
 from datetime import datetime
@@ -21,4 +21,15 @@ class User(Base):
     otp = Column(String, nullable=True)
     otp_expiry = Column(DateTime, nullable=True)
     
+    # User status
+    is_suspended = Column(Boolean, default=False, nullable=False)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class SiteSettings(Base):
+    __tablename__ = "site_settings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    maintenance_mode = Column(Boolean, default=False, nullable=False)
+    maintenance_message = Column(String, default="The site is temporarily closed for maintenance. Please check back later.")
+    email_alerts_enabled = Column(Boolean, default=True, nullable=False)

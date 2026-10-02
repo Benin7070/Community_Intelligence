@@ -17,6 +17,10 @@ export default function AdminView({ subView = 'admin' }) {
   const [auditLogs, setAuditLogs] = useState([
     { time: 'Live', desc: 'Admin governance session active. Telemetry stream connected.' }
   ]);
+  
+  // Site Settings State
+  const [siteSettings, setSiteSettings] = useState({ maintenance_mode: 0, maintenance_message: 'Site is under maintenance.', email_alerts_enabled: 1 });
+  const [settingsLoading, setSettingsLoading] = useState(false);
 
   // Provision Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -64,12 +68,79 @@ export default function AdminView({ subView = 'admin' }) {
     }
   }, []);
 
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/settings`);
+      if (res.ok) {
+        const data = await res.json();
+        setSiteSettings(data);
+      }
+    } catch (err) {
+      console.error('Failed to load site settings', err);
+    }
+  }, []);
+
   useEffect(() => {
     if (panelRef.current) {
       animatePanelEntrance(panelRef.current);
     }
     fetchUsers();
-  }, [fetchUsers]);
+    fetchSettings();
+  }, [fetchUsers, fetchSettings]);
+
+  const handleUpdateSettings = async (updates) => {
+    setSettingsLoading(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API_BASE}/auth/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...siteSettings, ...updates })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSiteSettings(data);
+        showToast('Site settings updated successfully');
+        addAuditLog(`Site maintenance mode set to ${data.maintenance_mode === 1 ? 'ON' : 'OFF'}`);
+      } else {
+        throw new Error('Failed to update settings');
+      }
+    } catch (err) {
+      showToast(err.message, true);
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
+  const handleToggleSuspend = async (userId, currentStatus) => {
+    const newStatus = currentStatus === 1 ? 0 : 1;
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API_BASE}/auth/users/${userId}/suspend`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ is_suspended: newStatus })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to update user suspension status.');
+      }
+
+      const updated = await res.json();
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_suspended: updated.is_suspended } : u));
+      showToast(`Account #${userId} ${newStatus === 1 ? 'suspended' : 'activated'}`);
+      addAuditLog(`User #${userId} suspension status changed to ${newStatus === 1 ? 'SUSPENDED' : 'ACTIVE'}`);
+    } catch (err) {
+      showToast(err.message, true);
+    }
+  };
 
   const handleToggleRole = async (userId, currentRole) => {
     const newRole = currentRole === 'admin' ? 'normal' : 'admin';
@@ -340,6 +411,65 @@ export default function AdminView({ subView = 'admin' }) {
           </div>
         </div>
 
+        {/* Global Site Maintenance Card */}
+        <div className="glass-card" style={{ marginBottom: '24px', padding: '24px', borderLeft: siteSettings.maintenance_mode === 1 ? '4px solid #ef4444' : '4px solid #10b981' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>Global Maintenance Mode</h3>
+              <p style={{ fontSize: '13px', color: '#a1a1aa', margin: 0 }}>
+                When active, all non-admin users will see the maintenance screen and cannot access the pipeline.
+              </p>
+            </div>
+            <button
+              className={`role-toggle-btn ${siteSettings.maintenance_mode === 1 ? 'promote' : 'demote'}`}
+              style={{ background: siteSettings.maintenance_mode === 1 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)', color: siteSettings.maintenance_mode === 1 ? '#ef4444' : '#10b981', padding: '8px 16px', fontWeight: 'bold' }}
+              onClick={() => handleUpdateSettings({ maintenance_mode: siteSettings.maintenance_mode === 1 ? 0 : 1 })}
+              disabled={settingsLoading}
+            >
+              {siteSettings.maintenance_mode === 1 ? 'Turn OFF Maintenance' : 'Turn ON Maintenance'}
+            </button>
+          </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="chatgpt-label" style={{ fontSize: '12px' }}>Maintenance Screen Message</label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input
+                type="text"
+                className="chatgpt-input"
+                value={siteSettings.maintenance_message}
+                onChange={(e) => setSiteSettings(prev => ({ ...prev, maintenance_message: e.target.value }))}
+                style={{ flex: 1 }}
+              />
+              <button 
+                className="admin-action-btn primary" 
+                onClick={() => handleUpdateSettings({})} 
+                disabled={settingsLoading}
+              >
+                Save Message
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Global Email Alerts Card */}
+        <div className="glass-card" style={{ marginBottom: '24px', padding: '24px', borderLeft: siteSettings.email_alerts_enabled === 1 ? '4px solid #10b981' : '4px solid #ef4444' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>System Health Email Alerts</h3>
+              <p style={{ fontSize: '13px', color: '#a1a1aa', margin: 0 }}>
+                When active, automated emails are sent to admins when system services fail or degrade.
+              </p>
+            </div>
+            <button
+              className={`role-toggle-btn ${siteSettings.email_alerts_enabled === 1 ? 'demote' : 'promote'}`}
+              style={{ background: siteSettings.email_alerts_enabled === 1 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)', color: siteSettings.email_alerts_enabled === 1 ? '#ef4444' : '#10b981', padding: '8px 16px', fontWeight: 'bold' }}
+              onClick={() => handleUpdateSettings({ email_alerts_enabled: siteSettings.email_alerts_enabled === 1 ? 0 : 1 })}
+              disabled={settingsLoading}
+            >
+              {siteSettings.email_alerts_enabled === 1 ? 'Turn OFF Alerts' : 'Turn ON Alerts'}
+            </button>
+          </div>
+        </div>
+
         {/* User Table */}
         <div className="admin-table-card glass-card">
           <div className="admin-table-toolbar">
@@ -451,10 +581,16 @@ export default function AdminView({ subView = 'admin' }) {
                           </span>
                         </td>
                         <td>
-                          <span className="status-indicator-tag online">
-                            <span className="pulse-tiny"></span>
-                            {u.has_password ? 'Password & OTP' : 'OTP Verified'}
-                          </span>
+                          {u.is_suspended === 1 ? (
+                            <span className="status-indicator-tag" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                              Suspended
+                            </span>
+                          ) : (
+                            <span className="status-indicator-tag online">
+                              <span className="pulse-tiny"></span>
+                              {u.has_password ? 'Password & OTP' : 'OTP Verified'}
+                            </span>
+                          )}
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div className="action-btn-group">
@@ -465,11 +601,20 @@ export default function AdminView({ subView = 'admin' }) {
                             ) : (
                               <>
                                 <button
+                                  className={`role-toggle-btn ${u.is_suspended === 1 ? 'promote' : 'demote'}`}
+                                  onClick={() => handleToggleSuspend(u.id, u.is_suspended)}
+                                  title={u.is_suspended === 1 ? 'Reactivate Account' : 'Suspend Account'}
+                                  style={{ padding: '6px 10px' }}
+                                >
+                                  {u.is_suspended === 1 ? 'Unsuspend' : 'Suspend'}
+                                </button>
+                                <button
                                   className={`role-toggle-btn ${isAdmin ? 'demote' : 'promote'}`}
                                   onClick={() => handleToggleRole(u.id, u.role)}
                                   title={isAdmin ? 'Demote to Standard' : 'Promote to Admin'}
+                                  style={{ padding: '6px 10px' }}
                                 >
-                                  {isAdmin ? 'Demote to Standard' : 'Promote to Admin'}
+                                  {isAdmin ? 'Demote' : 'Make Admin'}
                                 </button>
                                 <button
                                   className="user-delete-btn"

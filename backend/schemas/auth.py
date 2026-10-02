@@ -41,6 +41,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: RoleEnum
     has_password: Optional[bool] = False
+    is_suspended: Optional[int] = 0
     
     class Config:
         from_attributes = True
@@ -53,10 +54,26 @@ class UserCreateRequest(BaseModel):
 class RoleUpdateRequest(BaseModel):
     role: RoleEnum
 
+class UserSuspendRequest(BaseModel):
+    is_suspended: int
+
 class PasswordResetRequest(BaseModel):
     password: str
 
 class PasswordResetWithOtpRequest(BaseModel):
     otp: str
     new_password: str
+
+class SiteSettingsResponse(BaseModel):
+    maintenance_mode: int
+    maintenance_message: str
+    email_alerts_enabled: int
+    
+    class Config:
+        from_attributes = True
+
+class SiteSettingsUpdateRequest(BaseModel):
+    maintenance_mode: int
+    maintenance_message: str
+    email_alerts_enabled: int
 
