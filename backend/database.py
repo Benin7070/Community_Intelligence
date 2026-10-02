@@ -10,6 +10,9 @@ def _normalize_db_url(url: str) -> str:
     if not url:
         return "sqlite:///./community_intel.db"
     
+    # Strip any leading/trailing newlines, carriage returns, spaces, and quotes from env inputs
+    url = url.strip().strip("'\"").strip()
+
     # Scheme normalization to use psycopg2 driver
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+psycopg2://", 1)
@@ -21,6 +24,7 @@ def _normalize_db_url(url: str) -> str:
         try:
             scheme, rest = url.split("://", 1)
             creds, host_part = rest.rsplit("@", 1)
+            host_part = host_part.strip().rstrip("/")
             if ":" in creds:
                 user, pwd = creds.split(":", 1)
                 clean_pwd = urllib.parse.unquote(pwd)
@@ -29,7 +33,7 @@ def _normalize_db_url(url: str) -> str:
         except Exception:
             pass
             
-    return url
+    return url.strip()
 
 # Define database URL
 DB_URL = _normalize_db_url(settings.SUPABASE_DB_URL)

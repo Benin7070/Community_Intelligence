@@ -106,6 +106,8 @@ else:
         "http://127.0.0.1:3000"
     ] + env_origins
 
+from fastapi.responses import JSONResponse
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -114,6 +116,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global Exception Handler (Ensures 500 errors still pass through CORS with JSON body)
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"[Server Error] Unhandled exception on {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error occurred.", "error": str(exc)},
+    )
 
 # Lightweight Anti-Sleep Ping Endpoints (< 1ms, zero database overhead)
 @app.get("/api/v1/health/ping")

@@ -98,6 +98,12 @@ class Settings(BaseSettings):
             return "https://api.smtp2go.com/v3"
         return str(v).strip().rstrip("/")
 
+    @field_validator("SUPABASE_DB_URL", mode="before")
+    def validate_supabase_db_url(cls, v):
+        if not v:
+            return ""
+        return str(v).strip().strip("'\"").strip()
+
     class Config:
         env_file = ".env"
         extra = "ignore"
