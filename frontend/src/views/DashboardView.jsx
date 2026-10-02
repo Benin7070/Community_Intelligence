@@ -72,7 +72,7 @@ export default function DashboardView() {
     >
       
       {/* Maintenance & Suspension Blocks */}
-      {(user?.is_suspended === 1 || (siteSettings?.maintenance_mode === 1 && user?.role !== 'admin')) ? (
+      {user?.is_suspended === 1 ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="glass-card" style={{ maxWidth: '500px', textAlign: 'center', padding: '40px 30px', borderTop: '4px solid #ef4444' }}>
             <div style={{ display: 'inline-flex', padding: '16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', color: '#ef4444', marginBottom: '20px' }}>
@@ -81,12 +81,26 @@ export default function DashboardView() {
               </svg>
             </div>
             <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>
-              {user?.is_suspended === 1 ? 'Account Suspended' : 'Thanks for your interest!'}
+              Account Suspended
             </h2>
             <p style={{ color: '#a1a1aa', lineHeight: '1.6', fontSize: '15px' }}>
-              {user?.is_suspended === 1 
-                ? 'Your account has been temporarily suspended by an administrator. You currently do not have access to the platform services.'
-                : (siteSettings?.maintenance_message || 'This platform is temporarily closed for maintenance. We are currently undergoing scheduled upgrades.')}
+              Your account has been temporarily suspended by an administrator. You currently do not have access to the platform services.
+            </p>
+          </div>
+        </div>
+      ) : (siteSettings?.maintenance_mode === 1 && user?.role !== 'admin') ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-card" style={{ maxWidth: '500px', textAlign: 'center', padding: '40px 30px', borderTop: '4px solid #3b82f6' }}>
+            <div style={{ display: 'inline-flex', padding: '16px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '50%', color: '#3b82f6', marginBottom: '20px' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 9.36l-7.1 7.1a1 1 0 0 1-1.41-1.41l7.1-7.1a6 6 0 0 1 9.36-7.94l-3.77 3.77a1 1 0 0 0 0 1.41z"/>
+              </svg>
+            </div>
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>
+              Thanks for your interest!
+            </h2>
+            <p style={{ color: '#a1a1aa', lineHeight: '1.6', fontSize: '15px' }}>
+              {siteSettings?.maintenance_message || 'This platform is temporarily closed for maintenance. We are currently undergoing scheduled upgrades.'}
             </p>
           </div>
         </div>
