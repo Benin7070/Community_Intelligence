@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { usePipelineWS } from '../hooks/usePipelineWS';
+import { useAuth } from './AuthContext';
 import { API_BASE, WS_PIPELINE_URL } from '../config';
 
 const PipelineContext = createContext(null);
 
 export function PipelineProvider({ children }) {
+  const { user } = useAuth();
   const wsState = usePipelineWS(WS_PIPELINE_URL);
   const [currentData, setCurrentData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -139,10 +141,17 @@ export function PipelineProvider({ children }) {
     }
   }, []);
 
-  // Fetch initial chat history on mount
+  // Fetch chat history when user logs in (or on mount if already authenticated)
   useEffect(() => {
-    fetchChats();
-  }, [fetchChats]);
+    if (user) {
+      fetchChats();
+    } else {
+      // Clear history on logout
+      setHistoryList([]);
+      setChatMessages([]);
+      setActiveChatId(`chat_${Math.random().toString(36).substring(2, 10)}`);
+    }
+  }, [user, fetchChats]);
 
   const executePipeline = useCallback(async (query, competitorModel = "OpenAI (GPT-4o-mini)") => {
     if (!query || !query.trim()) return;

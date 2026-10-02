@@ -197,7 +197,8 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-              gap: '20px'
+              gap: '20px',
+              alignItems: 'start'
             }}
           >
             {/* Model A: Competitor LLM Baseline */}
@@ -279,10 +280,11 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
               </div>
 
               {/* Content Body */}
-              <div className="markdown-body" style={{ fontSize: '13.5px', color: '#e4e4e7', lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 8, WebkitBoxOrient: 'vertical', flex: 1 }}>
+              <div className="markdown-body" style={{ fontSize: '13.5px', color: '#e4e4e7', lineHeight: 1.6, maxHeight: '180px', overflow: 'hidden', position: 'relative' }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {localData.chatgpt_response || 'Standard ungrounded LLM response generated for technical query.'}
                 </ReactMarkdown>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50px', background: 'linear-gradient(transparent, rgba(18, 18, 20, 0.95))', pointerEvents: 'none' }}></div>
               </div>
 
               {/* Subtle footer */}
