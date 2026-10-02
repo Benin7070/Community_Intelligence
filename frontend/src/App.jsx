@@ -16,6 +16,16 @@ function AppContent() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [navGroup, setNavGroup] = useState('main'); // 'main' or 'admin'
 
+  // Reset to dashboard if a normal user somehow ends up in admin views (e.g. after logout/login)
+  React.useEffect(() => {
+    if (user && user.role !== 'admin') {
+      if (navGroup === 'admin' || currentView.startsWith('admin')) {
+        setNavGroup('main');
+        setCurrentView('dashboard');
+      }
+    }
+  }, [user, navGroup, currentView]);
+
   if (loading) return null;
 
   if (!user) {

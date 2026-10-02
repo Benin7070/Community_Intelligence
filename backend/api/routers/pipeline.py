@@ -16,7 +16,7 @@ from pipeline.orchestrator import PipelineOrchestrator
 from llm.synthesis import SynthesisEngine
 from api.websocket import manager
 from api.deps import get_current_user, get_current_admin
-from models.user import User
+from models.user import User, SiteSettings
 from models.chat import Chat, ChatMessage
 from datetime import datetime
 from storage.r2 import upload_text_to_r2, get_presigned_url
@@ -41,6 +41,10 @@ async def run_query(
     db: Session = Depends(get_db)
 ):
     try:
+        settings = db.query(SiteSettings).first()
+        if settings and settings.maintenance_mode and current_user.role.value != "admin":
+            raise HTTPException(status_code=503, detail=settings.maintenance_message)
+
         chat_id = request.chat_id or f"chat_{uuid.uuid4().hex[:8]}"
         message_id = request.message_id or f"msg_{uuid.uuid4().hex[:8]}"
         competitor_model = request.competitor_model or "OpenAI (GPT-4o-mini)"

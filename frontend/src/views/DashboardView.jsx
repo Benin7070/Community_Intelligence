@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import ChatTurnItem from '../components/chat/ChatTurnItem';
 import ChatInputBar from '../components/chat/ChatInputBar';
 import { animatePanelEntrance } from '../utils/motion';
+import { API_BASE } from '../config';
 
 export default function DashboardView() {
   const [query, setQuery] = useState('');
@@ -30,7 +31,7 @@ export default function DashboardView() {
     // Fetch global site settings
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/v1/auth/settings');
+        const res = await fetch(`${API_BASE}/auth/settings`);
         if (res.ok) {
           const data = await res.json();
           setSiteSettings(data);
@@ -72,7 +73,11 @@ export default function DashboardView() {
     >
       
       {/* Maintenance & Suspension Blocks */}
-      {user?.is_suspended === 1 ? (
+      {siteSettings === null ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ color: '#a1a1aa' }}>Checking system status...</div>
+        </div>
+      ) : user?.is_suspended === 1 ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="glass-card" style={{ maxWidth: '500px', textAlign: 'center', padding: '40px 30px', borderTop: '4px solid #ef4444' }}>
             <div style={{ display: 'inline-flex', padding: '16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', color: '#ef4444', marginBottom: '20px' }}>
