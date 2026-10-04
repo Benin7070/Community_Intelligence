@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Maximize2, X, Loader2 } from 'lucide-react';
+import { API_ROOT } from '../../config';
 
 export default function ChatTurnItem({ message, onSelectPreference, onLockPreference, currentUser }) {
   const [expandedContent, setExpandedContent] = useState(null);
@@ -17,12 +18,10 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
       const token = localStorage.getItem('auth_token');
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
       
-      // If it's a backend relative route, prefix with API_BASE, else use as is
+      // If it's a backend relative route, prefix with API_ROOT, else use as is
       let fetchUrl = message.r2_url;
       if (fetchUrl.startsWith('/api')) {
-        // Assume running on same origin or proxy
-        // Since we don't have API_BASE imported here, we'll try to get it from window or relative
-        fetchUrl = `http://localhost:8000${fetchUrl}`; // Fast fix for local development
+        fetchUrl = `${API_ROOT}${fetchUrl}`;
       }
       
       fetch(fetchUrl, { headers })
@@ -50,7 +49,9 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
 
   const compModel = localData?.competitor_model || competitorModel || 'OpenAI (GPT-4o-mini)';
   const compLatency = localData?.competitor_latency_ms || 780;
+  const compTokens = localData?.competitor_token_usage || 0;
   const ciLatency = localData?.ci_latency_ms || 1120;
+  const ciTokens = localData?.ci_token_usage || 0;
 
   const isCiVoted = votedPreference === 'ci_pipeline';
   const isCompetitorVoted = votedPreference === 'competitor' || votedPreference === 'chatgpt';
@@ -266,6 +267,24 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
                   >
                     <span>⚡</span> {compLatency} ms
                   </span>
+                  {compTokens > 0 && (
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        color: '#6366f1',
+                        background: 'rgba(99, 102, 241, 0.1)',
+                        border: '1px solid rgba(99, 102, 241, 0.25)',
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        fontFamily: 'JetBrains Mono',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <span>🪙</span> {compTokens} tokens
+                    </span>
+                  )}
                   <span className="badge-tag" style={{ background: 'rgba(255,255,255,0.06)', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.1)', fontSize: '10px' }}>
                     Baseline
                   </span>
@@ -358,11 +377,29 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
                   >
                     <span>⚡</span> {ciLatency} ms
                   </span>
+                  {ciTokens > 0 && (
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        color: '#a855f7',
+                        background: 'rgba(168, 85, 247, 0.1)',
+                        border: '1px solid rgba(168, 85, 247, 0.25)',
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        fontFamily: 'JetBrains Mono',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <span>🪙</span> {ciTokens} tokens
+                    </span>
+                  )}
                   <span className="confidence-badge high" style={{ fontSize: '11px', padding: '2px 8px' }}>
                     {confidencePercent}% ({status.toUpperCase()})
                   </span>
                   <button 
-                    onClick={() => setExpandedContent({ title: 'Community Intelligence Pipeline', markdown: localData.ci_response || 'Synthesized multi-source community consensus response with empirical evidence grounding.' })}
+                    onClick={() => setExpandedContent({ title: 'Community Intelligence Pipeline', markdown: localData.detailed_synthesis || 'Synthesized multi-source community consensus response with empirical evidence grounding.' })}
                     style={{ background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', padding: '4px' }}
                     title="Read full response"
                   >
@@ -385,6 +422,16 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
               >
                 <strong>Community Consensus:</strong> {localData.headline_answer}
               </div>
+
+              {/* Detailed Synthesis Body */}
+              {localData.detailed_synthesis && (
+                <div className="markdown-body" style={{ fontSize: '13.5px', color: '#e4e4e7', lineHeight: 1.6, maxHeight: '180px', overflow: 'hidden', position: 'relative' }}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {localData.detailed_synthesis}
+                  </ReactMarkdown>
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50px', background: 'linear-gradient(transparent, rgba(18, 18, 20, 0.95))', pointerEvents: 'none' }}></div>
+                </div>
+              )}
 
               {/* Supported Claims List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

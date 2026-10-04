@@ -82,7 +82,7 @@ export default function Sidebar({ currentView, setCurrentView, navGroup, setNavG
             )}
             <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '12px 0' }} />
 
-            <button
+            {/* <button
               className={`nav-btn ${currentView === 'provenance' ? 'active' : ''}`}
               onClick={() => setCurrentView('provenance')}
             >
@@ -98,7 +98,7 @@ export default function Sidebar({ currentView, setCurrentView, navGroup, setNavG
                 <span>Provenance Graph</span>
                 <small>Layer 4 Knowledge</small>
               </div>
-            </button>
+            </button> */}
 
             <button
               className={`nav-btn ${currentView === 'architecture' ? 'active' : ''}`}
@@ -113,7 +113,7 @@ export default function Sidebar({ currentView, setCurrentView, navGroup, setNavG
               </div>
             </button>
 
-            <button
+            {/* <button
               className={`nav-btn ${currentView === 'conflicts' ? 'active' : ''}`}
               onClick={() => setCurrentView('conflicts')}
             >
@@ -124,7 +124,7 @@ export default function Sidebar({ currentView, setCurrentView, navGroup, setNavG
                 <span>Conflict & Uncertainty</span>
                 <small>Bayesian Calibration</small>
               </div>
-            </button>
+            </button> */}
 
             <button
               className={`nav-btn ${currentView === 'sources' ? 'active' : ''}`}
@@ -252,6 +252,19 @@ export default function Sidebar({ currentView, setCurrentView, navGroup, setNavG
               <div className="nav-label">
                 <span>System Check</span>
                 <small>SMTP2GO & Supabase (10m)</small>
+              </div>
+            </button>
+
+            <button
+              className={`nav-btn ${currentView === 'admin-control-center' ? 'active' : ''}`}
+              onClick={() => setCurrentView('admin-control-center')}
+            >
+              <svg className="nav-icon" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"></path>
+              </svg>
+              <div className="nav-label">
+                <span>Control Center</span>
+                <small>Pipeline & Settings</small>
               </div>
             </button>
           </div>

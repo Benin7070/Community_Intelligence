@@ -93,7 +93,7 @@ export default function DashboardView() {
             </p>
           </div>
         </div>
-      ) : (siteSettings?.maintenance_mode === 1 && user?.role !== 'admin') ? (
+      ) : (siteSettings?.maintenance_mode === 1 && user?.role !== 'admin' && user?.bypass_maintenance !== 1) ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="glass-card" style={{ maxWidth: '500px', textAlign: 'center', padding: '40px 30px', borderTop: '4px solid #3b82f6' }}>
             <div style={{ display: 'inline-flex', padding: '16px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '50%', color: '#3b82f6', marginBottom: '20px' }}>
@@ -257,8 +257,7 @@ export default function DashboardView() {
           onSubmit={handleSubmit}
           loading={loading}
           hasMessages={chatMessages.length > 0}
-          competitorModel={competitorModel}
-          setCompetitorModel={setCompetitorModel}
+          competitorModel={siteSettings?.competitor_model || competitorModel}
           activeChatId={activeChatId}
           onNewChat={startNewChat}
         />

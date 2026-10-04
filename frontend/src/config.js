@@ -1,7 +1,12 @@
 // Centralized API and WebSocket configuration for local development and Render deployment
 
 const formatApiRoot = (url) => {
-  if (!url) return 'http://localhost:8000';
+  if (!url) {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return window.location.origin; // fallback to same origin in production
+    }
+    return 'http://localhost:8000';
+  }
   let clean = url.trim().replace(/\/+$/, '');
   if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
     clean = `https://${clean}`;

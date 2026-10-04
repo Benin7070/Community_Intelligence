@@ -4,6 +4,7 @@ import { animatePanelEntrance } from '../utils/motion';
 import SystemHealthView from './admin/SystemHealthView';
 import UserPreferencesView from './admin/UserPreferencesView';
 import AdminTestRigView from './AdminTestRigView';
+import ControlCenterView from './admin/ControlCenterView';
 import { API_BASE } from '../config';
 
 export default function AdminView({ subView = 'admin' }) {
@@ -20,7 +21,7 @@ export default function AdminView({ subView = 'admin' }) {
   ]);
   
   // Site Settings State
-  const [siteSettings, setSiteSettings] = useState({ maintenance_mode: 0, maintenance_message: 'Site is under maintenance.', email_alerts_enabled: 1 });
+  const [siteSettings, setSiteSettings] = useState({ maintenance_mode: 0, maintenance_message: 'Site is under maintenance.', email_alerts_enabled: 1, pipeline_mode: 'real' });
   const [settingsLoading, setSettingsLoading] = useState(false);
 
   // Provision Modal State
@@ -143,6 +144,33 @@ export default function AdminView({ subView = 'admin' }) {
     }
   };
 
+  const handleToggleBypass = async (userId, currentStatus) => {
+    const newStatus = currentStatus === 1 ? 0 : 1;
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API_BASE}/auth/users/${userId}/bypass`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ bypass_maintenance: newStatus })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to update user bypass status.');
+      }
+
+      const updated = await res.json();
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, bypass_maintenance: updated.bypass_maintenance } : u));
+      showToast(`Account #${userId} bypass mode ${newStatus === 1 ? 'enabled' : 'disabled'}`);
+      addAuditLog(`User #${userId} bypass maintenance changed to ${newStatus === 1 ? 'YES' : 'NO'}`);
+    } catch (err) {
+      showToast(err.message, true);
+    }
+  };
+
   const handleToggleRole = async (userId, currentRole) => {
     const newRole = currentRole === 'admin' ? 'normal' : 'admin';
     try {
@@ -247,6 +275,15 @@ export default function AdminView({ subView = 'admin' }) {
     return (
       <section className="view-panel active" id="viewAdmin-preferences" ref={panelRef}>
         <UserPreferencesView />
+      </section>
+    );
+  }
+
+  // If viewing admin-control-center (Pipeline & Settings)
+  if (subView === 'admin-control-center') {
+    return (
+      <section className="view-panel active" id="viewAdmin-control-center">
+        <ControlCenterView />
       </section>
     );
   }
@@ -421,64 +458,7 @@ export default function AdminView({ subView = 'admin' }) {
           </div>
         </div>
 
-        {/* Global Site Maintenance Card */}
-        <div className="glass-card" style={{ marginBottom: '24px', padding: '24px', borderLeft: siteSettings.maintenance_mode === 1 ? '4px solid #ef4444' : '4px solid #10b981' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>Global Maintenance Mode</h3>
-              <p style={{ fontSize: '13px', color: '#a1a1aa', margin: 0 }}>
-                When active, all non-admin users will see the maintenance screen and cannot access the pipeline.
-              </p>
-            </div>
-            <button
-              className={`role-toggle-btn ${siteSettings.maintenance_mode === 1 ? 'promote' : 'demote'}`}
-              style={{ background: siteSettings.maintenance_mode === 1 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)', color: siteSettings.maintenance_mode === 1 ? '#ef4444' : '#10b981', padding: '8px 16px', fontWeight: 'bold' }}
-              onClick={() => handleUpdateSettings({ maintenance_mode: siteSettings.maintenance_mode === 1 ? 0 : 1 })}
-              disabled={settingsLoading}
-            >
-              {siteSettings.maintenance_mode === 1 ? 'Turn OFF Maintenance' : 'Turn ON Maintenance'}
-            </button>
-          </div>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="chatgpt-label" style={{ fontSize: '12px' }}>Maintenance Screen Message</label>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input
-                type="text"
-                className="chatgpt-input"
-                value={siteSettings.maintenance_message}
-                onChange={(e) => setSiteSettings(prev => ({ ...prev, maintenance_message: e.target.value }))}
-                style={{ flex: 1 }}
-              />
-              <button 
-                className="admin-action-btn primary" 
-                onClick={() => handleUpdateSettings({})} 
-                disabled={settingsLoading}
-              >
-                Save Message
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Global Email Alerts Card */}
-        <div className="glass-card" style={{ marginBottom: '24px', padding: '24px', borderLeft: siteSettings.email_alerts_enabled === 1 ? '4px solid #10b981' : '4px solid #ef4444' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>System Health Email Alerts</h3>
-              <p style={{ fontSize: '13px', color: '#a1a1aa', margin: 0 }}>
-                When active, automated emails are sent to admins when system services fail or degrade.
-              </p>
-            </div>
-            <button
-              className={`role-toggle-btn ${siteSettings.email_alerts_enabled === 1 ? 'demote' : 'promote'}`}
-              style={{ background: siteSettings.email_alerts_enabled === 1 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)', color: siteSettings.email_alerts_enabled === 1 ? '#ef4444' : '#10b981', padding: '8px 16px', fontWeight: 'bold' }}
-              onClick={() => handleUpdateSettings({ email_alerts_enabled: siteSettings.email_alerts_enabled === 1 ? 0 : 1 })}
-              disabled={settingsLoading}
-            >
-              {siteSettings.email_alerts_enabled === 1 ? 'Turn OFF Alerts' : 'Turn ON Alerts'}
-            </button>
-          </div>
-        </div>
+        {/* Removed Pipeline, Maintenance, and Alert Cards - Moved to ControlCenterView */}
 
         {/* User Table */}
         <div className="admin-table-card glass-card">
@@ -610,6 +590,14 @@ export default function AdminView({ subView = 'admin' }) {
                               </span>
                             ) : (
                               <>
+                                <button
+                                  className={`role-toggle-btn ${u.bypass_maintenance === 1 ? 'demote' : 'promote'}`}
+                                  onClick={() => handleToggleBypass(u.id, u.bypass_maintenance)}
+                                  title={u.bypass_maintenance === 1 ? 'Revoke Maintenance Bypass' : 'Allow Maintenance Bypass'}
+                                  style={{ padding: '6px 10px', background: u.bypass_maintenance === 1 ? 'rgba(168, 85, 247, 0.2)' : 'rgba(255, 255, 255, 0.05)', color: u.bypass_maintenance === 1 ? '#a855f7' : '#a1a1aa', border: u.bypass_maintenance === 1 ? '1px solid rgba(168, 85, 247, 0.5)' : '1px solid rgba(255,255,255,0.1)' }}
+                                >
+                                  {u.bypass_maintenance === 1 ? 'Bypass ON' : 'Bypass OFF'}
+                                </button>
                                 <button
                                   className={`role-toggle-btn ${u.is_suspended === 1 ? 'promote' : 'demote'}`}
                                   onClick={() => handleToggleSuspend(u.id, u.is_suspended)}

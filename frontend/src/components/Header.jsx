@@ -28,7 +28,8 @@ export default function Header({ user, onLogout, currentView }) {
     'admin': { title: 'Admin Governance & User Delegation', sub: 'Manage system roles, oversee platform access policies, and audit community research permissions' },
     'admin-audit': { title: 'System Audit Logs', sub: 'Monitor user actions, system modifications, and access events' },
     'admin-preferences': { title: 'User Preferences & Model Evaluation Arena (Layer 6)', sub: 'Audit comparative user choices, competitor baselines (OpenAI, Claude, Gemini), dual latencies, and locked votes' },
-    'admin-health': { title: 'System Health & Infrastructure Diagnostics', sub: 'Live connectivity telemetry for Supabase PostgreSQL, SMTP2GO, and Core Pipeline with 10-minute auto-check' }
+    'admin-health': { title: 'System Health & Infrastructure Diagnostics', sub: 'Live connectivity telemetry for Supabase PostgreSQL, SMTP2GO, and Core Pipeline with 10-minute auto-check' },
+    'admin-control-center': { title: 'Pipeline Control Center', sub: 'Manage AI pipeline modes, maintenance states, and global system alerts' }
   };
   const { title, sub } = viewMap[currentView] || { title: currentView, sub: '' };
   

@@ -125,6 +125,8 @@ class QueryResponse(BaseModel):
     competitor_model: str = "OpenAI (GPT-4o-mini)"
     competitor_latency_ms: int = 0
     ci_latency_ms: int = 0
+    ci_token_usage: int = 0
+    competitor_token_usage: int = 0
     routing: QueryRoutingInfo
     headline_answer: str
     detailed_synthesis: str = ""

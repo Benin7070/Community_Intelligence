@@ -21,8 +21,8 @@ class User(Base):
     otp = Column(String, nullable=True)
     otp_expiry = Column(DateTime, nullable=True)
     
-    # User status
     is_suspended = Column(Boolean, default=False, nullable=False)
+    bypass_maintenance = Column(Boolean, default=False, nullable=False)
     
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -33,3 +33,5 @@ class SiteSettings(Base):
     maintenance_mode = Column(Boolean, default=False, nullable=False)
     maintenance_message = Column(String, default="The site is temporarily closed for maintenance. Please check back later.")
     email_alerts_enabled = Column(Boolean, default=True, nullable=False)
+    pipeline_mode = Column(String, default="real", nullable=False)
+    competitor_model = Column(String, default="gpt-4o", nullable=False)

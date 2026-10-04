@@ -92,3 +92,4 @@ desktop.ini
 # ==========================================
 backend/train_and_test.py
 backend/pipeline/train_classifier.py
+tests/

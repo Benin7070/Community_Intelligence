@@ -27,7 +27,7 @@ export default function ClassifierNode({ data }) {
       }
 
       const result = await res.json();
-      setOutputJson({
+      const finalOutput = {
         type: "classifier_node",
         timestamp: new Date().toISOString(),
         routing: {
@@ -35,9 +35,17 @@ export default function ClassifierNode({ data }) {
           confidence: result.confidence,
           probabilities: result.probabilities,
         },
-        payload: inputData.data
-      });
+        payload: inputData.data,
+        destination: result.destination, // Flatten for the Decision Node
+        query: inputData.data.text // Forward the query text
+      };
+      
+      setOutputJson(finalOutput);
+      if (data.onExecute) {
+        data.onExecute(finalOutput);
+      }
     } catch (err) {
+      console.error(err);
       setOutputJson({ error: err.message });
     } finally {
       setIsLoading(false);

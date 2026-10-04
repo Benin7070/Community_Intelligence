@@ -27,6 +27,7 @@ from schemas.auth import (
     UserCreateRequest,
     RoleUpdateRequest,
     UserSuspendRequest,
+    UserBypassMaintenanceRequest,
     PasswordResetRequest,
     PasswordResetWithOtpRequest,
     SiteSettingsResponse,
@@ -96,7 +97,8 @@ def login_password(request: PasswordLoginRequest, db: Session = Depends(get_db))
             "email": user.email,
             "role": user.role.value,
             "has_password": bool(user.hashed_password),
-            "is_suspended": 1 if user.is_suspended else 0
+            "is_suspended": 1 if user.is_suspended else 0,
+            "bypass_maintenance": 1 if user.bypass_maintenance else 0
         }
     }
 
@@ -179,7 +181,8 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
             "email": user.email,
             "role": user.role.value,
             "has_password": bool(user.hashed_password),
-            "is_suspended": 1 if user.is_suspended else 0
+            "is_suspended": 1 if user.is_suspended else 0,
+            "bypass_maintenance": 1 if user.bypass_maintenance else 0
         }
     }
 
@@ -240,7 +243,8 @@ def verify_otp(request: OTPVerify, db: Session = Depends(get_db)):
             "email": user.email,
             "role": user.role.value,
             "has_password": bool(user.hashed_password),
-            "is_suspended": 1 if user.is_suspended else 0
+            "is_suspended": 1 if user.is_suspended else 0,
+            "bypass_maintenance": 1 if user.bypass_maintenance else 0
         }
     }
 
@@ -441,23 +445,8 @@ async def run_system_health_checks(service: Optional[str] = None, db: Session = 
     if not service or service == "data_sources":
         sources_start = time.time()
         try:
-            # Check API endpoints reachability concurrently
-            async def check_sources():
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    so_req = client.get("https://api.stackexchange.com/2.3/info?site=stackoverflow")
-                    gh_headers = {"Authorization": f"Bearer {settings.GITHUB_TOKEN}"} if settings.GITHUB_TOKEN else {}
-                    gh_req = client.get("https://api.github.com/rate_limit", headers=gh_headers)
-                    hn_req = client.get("https://hn.algolia.com/api/v1/search?query=test&hitsPerPage=1")
-                    
-                    so_res, gh_res, hn_res = await asyncio.gather(so_req, gh_req, hn_req, return_exceptions=True)
-                    
-                    return {
-                        "stackoverflow": "OK" if isinstance(so_res, httpx.Response) and so_res.status_code == 200 else "Failed",
-                        "github": "OK" if isinstance(gh_res, httpx.Response) and gh_res.status_code == 200 else "Failed",
-                        "hackernews": "OK" if isinstance(hn_res, httpx.Response) and hn_res.status_code == 200 else "Failed",
-                    }
-                    
-            source_statuses = await check_sources()
+            from pipeline.sources import check_sources_health
+            source_statuses = await check_sources_health()
             
             sources_latency = round((time.time() - sources_start) * 1000)
             is_healthy = all(v == "OK" for v in source_statuses.values())
@@ -628,7 +617,32 @@ def suspend_user(
         "email": user.email,
         "role": user.role,
         "has_password": bool(user.hashed_password),
-        "is_suspended": 1 if user.is_suspended else 0
+        "is_suspended": 1 if user.is_suspended else 0,
+        "bypass_maintenance": 1 if user.bypass_maintenance else 0
+    }
+
+@router.put("/users/{user_id}/bypass", response_model=UserResponse)
+def update_user_bypass(
+    user_id: int,
+    request: UserBypassMaintenanceRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Toggle maintenance bypass for a user (Admin Only)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    user.bypass_maintenance = bool(request.bypass_maintenance)
+    db.commit()
+    db.refresh(user)
+    return {
+        "id": user.id,
+        "email": user.email,
+        "role": user.role,
+        "has_password": bool(user.hashed_password),
+        "is_suspended": 1 if user.is_suspended else 0,
+        "bypass_maintenance": 1 if user.bypass_maintenance else 0
     }
 
 @router.get("/me", response_model=UserResponse)
@@ -639,7 +653,8 @@ def read_users_me(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "role": current_user.role,
         "has_password": bool(current_user.hashed_password),
-        "is_suspended": 1 if current_user.is_suspended else 0
+        "is_suspended": 1 if current_user.is_suspended else 0,
+        "bypass_maintenance": 1 if current_user.bypass_maintenance else 0
     }
 
 # -----------------------------------------------------------------------------
@@ -660,7 +675,9 @@ def get_site_settings(db: Session = Depends(get_db)):
     return {
         "maintenance_mode": 1 if settings.maintenance_mode else 0,
         "maintenance_message": settings.maintenance_message,
-        "email_alerts_enabled": 1 if settings.email_alerts_enabled else 0
+        "email_alerts_enabled": 1 if settings.email_alerts_enabled else 0,
+        "pipeline_mode": settings.pipeline_mode,
+        "competitor_model": settings.competitor_model
     }
 
 @router.put("/settings", response_model=SiteSettingsResponse)
@@ -678,13 +695,17 @@ def update_site_settings(
     settings.maintenance_mode = bool(request.maintenance_mode)
     settings.maintenance_message = request.maintenance_message
     settings.email_alerts_enabled = bool(request.email_alerts_enabled)
+    settings.pipeline_mode = request.pipeline_mode
+    settings.competitor_model = request.competitor_model
     db.commit()
     db.refresh(settings)
     
     return {
         "maintenance_mode": 1 if settings.maintenance_mode else 0,
         "maintenance_message": settings.maintenance_message,
-        "email_alerts_enabled": 1 if settings.email_alerts_enabled else 0
+        "email_alerts_enabled": 1 if settings.email_alerts_enabled else 0,
+        "pipeline_mode": settings.pipeline_mode,
+        "competitor_model": settings.competitor_model
     }
 
 @router.post("/password-reset/request-otp")

@@ -42,6 +42,7 @@ class UserResponse(BaseModel):
     role: RoleEnum
     has_password: Optional[bool] = False
     is_suspended: Optional[int] = 0
+    bypass_maintenance: Optional[int] = 0
     
     class Config:
         from_attributes = True
@@ -57,6 +58,9 @@ class RoleUpdateRequest(BaseModel):
 class UserSuspendRequest(BaseModel):
     is_suspended: int
 
+class UserBypassMaintenanceRequest(BaseModel):
+    bypass_maintenance: int
+
 class PasswordResetRequest(BaseModel):
     password: str
 
@@ -68,6 +72,8 @@ class SiteSettingsResponse(BaseModel):
     maintenance_mode: int
     maintenance_message: str
     email_alerts_enabled: int
+    pipeline_mode: str
+    competitor_model: str
     
     class Config:
         from_attributes = True
@@ -76,4 +82,6 @@ class SiteSettingsUpdateRequest(BaseModel):
     maintenance_mode: int
     maintenance_message: str
     email_alerts_enabled: int
+    pipeline_mode: str
+    competitor_model: str
 

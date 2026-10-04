@@ -150,18 +150,24 @@ class DataAcquisitionModule(BaseModule):
             print(f"[DataAcquisition] HackerNews fetch failed: {e}")
         return posts
 
-    async def process(self, query: str) -> List[RawPost]:
+    async def process(self, query: str, active_sources: List[str] = None) -> List[RawPost]:
+        sources_to_run = active_sources if active_sources is not None else ["Stack Overflow", "GitHub", "HackerNews"]
+        
         await self.publish_event("started", {
             "query": query,
-            "fetching_sources": ["Stack Overflow API", "GitHub Issues API", "HackerNews Algolia API"]
+            "fetching_sources": sources_to_run
         })
         
         async with httpx.AsyncClient(timeout=10.0) as client:
-            so_task = self._fetch_stackoverflow(client, query)
-            gh_task = self._fetch_github(client, query)
-            hn_task = self._fetch_hackernews(client, query)
-            
-            results = await asyncio.gather(so_task, gh_task, hn_task, return_exceptions=True)
+            tasks = []
+            if "Stack Overflow" in sources_to_run:
+                tasks.append(self._fetch_stackoverflow(client, query))
+            if "GitHub" in sources_to_run:
+                tasks.append(self._fetch_github(client, query))
+            if "HackerNews" in sources_to_run:
+                tasks.append(self._fetch_hackernews(client, query))
+                
+            results = await asyncio.gather(*tasks, return_exceptions=True) if tasks else []
             
         real_posts: List[RawPost] = []
         for res in results:

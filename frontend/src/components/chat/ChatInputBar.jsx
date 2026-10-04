@@ -159,10 +159,7 @@ export default function ChatInputBar({
             <span style={{ fontSize: '11.5px', color: '#a1a1aa', fontWeight: 600 }}>
               Compare Against:
             </span>
-            <select
-              value={competitorModel}
-              onChange={(e) => setCompetitorModel && setCompetitorModel(e.target.value)}
-              disabled={loading}
+            <div
               style={{
                 background: 'rgba(0, 0, 0, 0.5)',
                 border: '1px solid rgba(255, 255, 255, 0.18)',
@@ -170,15 +167,14 @@ export default function ChatInputBar({
                 fontSize: '12px',
                 padding: '4px 10px',
                 borderRadius: '8px',
-                outline: 'none',
-                cursor: 'pointer',
                 fontWeight: 600
               }}
             >
-              <option value="OpenAI (GPT-4o-mini)" style={{ background: '#121214', color: '#fff' }}>OpenAI (GPT-4o-mini)</option>
-              <option value="Anthropic (Claude 3.5 Sonnet)" style={{ background: '#121214', color: '#fff' }}>Anthropic (Claude 3.5 Sonnet)</option>
-              <option value="Google (Gemini 2.0 Flash)" style={{ background: '#121214', color: '#fff' }}>Google (Gemini 2.0 Flash)</option>
-            </select>
+              {competitorModel === 'gpt-4o' ? 'OpenAI (GPT-4o)' 
+               : competitorModel === 'claude-3.5-sonnet' ? 'Anthropic (Claude 3.5 Sonnet)' 
+               : competitorModel === 'gemini-1.5-pro' ? 'Google (Gemini 1.5 Pro)'
+               : competitorModel}
+            </div>
           </div>
 
           <button
