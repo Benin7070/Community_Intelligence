@@ -48,7 +48,7 @@ function AppContent() {
           {currentView === 'architecture' && <ArchitectureView />}
           {currentView === 'conflicts' && <ConflictsView />}
           {currentView === 'sources' && <SourcesView />}
-          {(currentView === 'admin' || currentView === 'admin-audit' || currentView === 'admin-health' || currentView === 'admin-preferences') && user?.role === 'admin' && (
+          {(currentView === 'admin' || currentView === 'admin-audit' || currentView === 'admin-health' || currentView === 'admin-preferences' || currentView === 'admin-test-rig') && user?.role === 'admin' && (
             <AdminView subView={currentView} />
           )}
         </main>

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { animatePanelEntrance } from '../utils/motion';
 import SystemHealthView from './admin/SystemHealthView';
 import UserPreferencesView from './admin/UserPreferencesView';
+import AdminTestRigView from './AdminTestRigView';
 import { API_BASE } from '../config';
 
 export default function AdminView({ subView = 'admin' }) {
@@ -246,6 +247,15 @@ export default function AdminView({ subView = 'admin' }) {
     return (
       <section className="view-panel active" id="viewAdmin-preferences" ref={panelRef}>
         <UserPreferencesView />
+      </section>
+    );
+  }
+
+  // If viewing test rig
+  if (subView === 'admin-test-rig') {
+    return (
+      <section className="view-panel active" id="viewAdmin-test-rig" ref={panelRef}>
+        <AdminTestRigView />
       </section>
     );
   }

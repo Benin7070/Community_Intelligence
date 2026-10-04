@@ -8,7 +8,8 @@ from api.routers import (
     auth_router,
     pipeline_router as api_router,
     websocket_router as ws_router,
-    chat_router
+    chat_router,
+    testrig_router
 )
 from database import engine, Base
 from models.user import User
@@ -204,6 +205,7 @@ def ping():
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(chat_router, prefix="/api/v1", tags=["chat"])
+app.include_router(testrig_router, prefix="/api/v1/testrig", tags=["testrig"])
 app.include_router(ws_router) # WebSockets at root path for now
 
 @app.get("/")

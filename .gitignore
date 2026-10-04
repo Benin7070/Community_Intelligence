@@ -86,3 +86,9 @@ desktop.ini
 # ==========================================
 *.log
 .agents/
+
+# ==========================================
+# ML Training Scripts (Do not commit)
+# ==========================================
+backend/train_and_test.py
+backend/pipeline/train_classifier.py
