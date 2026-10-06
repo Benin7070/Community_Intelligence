@@ -300,7 +300,10 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
 
               {/* Content Body */}
               <div className="markdown-body" style={{ fontSize: '13.5px', color: '#e4e4e7', lineHeight: 1.6, maxHeight: '180px', overflow: 'hidden', position: 'relative' }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{ a: ({node, ...props}) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}
+                >
                   {localData.chatgpt_response || 'Standard ungrounded LLM response generated for technical query.'}
                 </ReactMarkdown>
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50px', background: 'linear-gradient(transparent, rgba(18, 18, 20, 0.95))', pointerEvents: 'none' }}></div>
@@ -426,7 +429,10 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
               {/* Detailed Synthesis Body */}
               {localData.detailed_synthesis && (
                 <div className="markdown-body" style={{ fontSize: '13.5px', color: '#e4e4e7', lineHeight: 1.6, maxHeight: '180px', overflow: 'hidden', position: 'relative' }}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{ a: ({node, ...props}) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}
+                  >
                     {localData.detailed_synthesis}
                   </ReactMarkdown>
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50px', background: 'linear-gradient(transparent, rgba(18, 18, 20, 0.95))', pointerEvents: 'none' }}></div>
@@ -688,7 +694,10 @@ export default function ChatTurnItem({ message, onSelectPreference, onLockPrefer
               </button>
             </div>
             <div className="markdown-body" style={{ padding: '24px', overflowY: 'auto', fontSize: '14.5px', color: '#e4e4e7', lineHeight: 1.7 }}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{ a: ({node, ...props}) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}
+              >
                 {expandedContent.markdown}
               </ReactMarkdown>
             </div>

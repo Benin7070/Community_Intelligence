@@ -15,7 +15,7 @@ async def execute_claim_modeling_node(acquired_data: dict) -> dict:
             for item in items:
                 title = item.get("title", "")
                 body = item.get("body", "") or item.get("body_html", "")
-                url = item.get("url") or item.get("link", "unknown")
+                url = item.get("html_url") or item.get("link") or item.get("url", "unknown")
                 score = item.get("score") or item.get("upvoteCount") or 0
                 
                 # Extract the REAL unique ID so M4 can cross-reference it

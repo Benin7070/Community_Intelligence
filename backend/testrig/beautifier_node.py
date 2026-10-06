@@ -47,7 +47,7 @@ async def execute_beautifier_node(m5_data: dict, m1_data: dict, query: str) -> d
             hit = lookup_table.get(str(cid))
             if hit:
                 title = hit.get("title", "")
-                url = hit.get("url") or hit.get("link", f"ID:{cid}")
+                url = hit.get("html_url") or hit.get("link") or hit.get("url", f"ID:{cid}")
                 score = hit.get("score", 0)
                 platform = hit.get("_platform", "Unknown")
                 context_str += f" - [{platform}] {title} (Score: {score}) -> {url}\n"
